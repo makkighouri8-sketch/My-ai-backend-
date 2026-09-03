@@ -25,16 +25,15 @@ HTML_TEMPLATE = f"""
 
         #chatbox {{ flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; background: #000000; }}
         
-        .msg {{ padding: 12px 18px; max-width: 85%; line-height: 1.5; font-size: 0.95rem; word-break: break-word; font-weight: 400; }}
+        .msg {{ padding: 4px 0; max-width: 85%; line-height: 1.5; font-size: 0.95rem; word-break: break-word; font-weight: 400; }}
         
-        /* User Message Bubble */
-        .user {{ background: #2563eb; color: white; align-self: flex-end; border-radius: 20px; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); animation: popUser 0.25s ease forwards; opacity: 0; transform: scale(0.95); }}
-        @keyframes popUser {{ to {{ opacity: 1; transform: scale(1); }} }}
+        /* User Message (Plain Text, Black Background Style, Right Aligned) */
+        .user {{ background: transparent !important; color: #ffffff; align-self: flex-end; text-align: right; border: none !important; box-shadow: none !important; opacity: 1; }}
 
         /* Bot Message Without Box Frame */
-        .bot {{ background: transparent !important; color: #f3f4f6; align-self: flex-start; padding: 4px 0; border: none !important; box-shadow: none !important; opacity: 1; }}
+        .bot {{ background: transparent !important; color: #f3f4f6; align-self: flex-start; text-align: left; border: none !important; box-shadow: none !important; opacity: 1; }}
 
-        /* Pink Vortex Loader Without Box Frame (Icon Sized Up to 32px) */
+        /* Pink Vortex Loader Without Box Frame (Icon 32px) */
         .vortex-loader {{ display: flex; align-items: center; gap: 12px; padding: 6px 0; align-self: flex-start; background: transparent !important; border: none !important; box-shadow: none !important; }}
         .vortex-loader img {{ width: 32px; height: 32px; border-radius: 50%; object-fit: cover; filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.4)); }}
         .vortex-loader span {{ font-size: 0.92rem; color: #f43f5e; font-weight: 500; opacity: 0.95; }}
