@@ -1,8 +1,12 @@
 from flask import Flask, request, jsonify, render_template_string
-import g4f
+import google.generativeai as genai
 import re
 
 app = Flask(__name__)
+
+# Google Gemini API Key Set Ho Gayi Hai
+GEMINI_API_KEY = "AQ.Ab8RN6JkF4wgt9a6aJTPDP11MyZP4-faPZboIy6qOgmj1TRD8A"
+genai.configure(api_key=GEMINI_API_KEY)
 
 GIF_URL = "https://i.ibb.co/dsH5qcZc/56698194ba8737a1c0c66786390374b0.gif"
 
@@ -137,7 +141,7 @@ HTML_TEMPLATE = f"""
                 const currentLoader = document.getElementById(loaderId);
                 if (currentLoader) currentLoader.remove();
                 
-                displayFadeMessage("Server issue, please try again.");
+                displayFadeMessage("Server connection error.");
             }}
         }}
 
@@ -166,30 +170,25 @@ def chat():
     data = request.json or {}
     user_message = data.get('message', '')
     if not user_message: 
-        return jsonify({"error": "Message is required"}), 400
+        return jsonify({"error": "Message required"}), 400
+
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        system_instruction = (
+            "You are Tringo AI, a helpful AI assistant.\n"
+            "Strict Instructions:\n"
+            "1. If user speaks in Roman Urdu, reply in Roman Urdu.\n"
+            "2. If user speaks in English, reply in English.\n"
+            "3. DO NOT output Chinese characters.\n"
+            "4. Be smart, helpful, and clear."
+        )
         
-    system_prompt = (
-        "System: You are Tringo AI, a friendly assistant. "
-        "Strict Rule: Answer in Roman Urdu if the user writes in Roman Urdu or Urdu. Answer in English if in English. "
-        "NEVER USE CHINESE CHARACTERS.\n\n"
-        f"User: {user_message}"
-    )
+        prompt = f"{system_instruction}\n\nUser: {user_message}"
+        res = model.generate_content(prompt)
+        
+        reply = res.text if res.text else "Bilkul, batao kya madad chahiye?"
+        return jsonify({"response": reply})
 
-    models_to_try = ["gemini-pro", "gpt-3.5-turbo"]
-    
-    for model in models_to_try:
-        try:
-            response = g4f.ChatCompletion.create(
-                model=model,
-                messages=[{"role": "user", "content": system_prompt}]
-            )
-            if response:
-                # Remove Chinese/non-ASCII glyphs if provider injects them
-                cleaned = re.sub(r'[\u4e00-\u9fff]+', '', str(response)).strip()
-                if cleaned:
-                    return jsonify({"response": cleaned})
-        except Exception:
-            continue
+    except Exception as e:
+        return jsonify({"error": f"API Error: {str(e)}"}), 500
 
-    # Fail-safe local backup
-    return jsonify({"response": "Haan bhai, bolo! Main aap ki kya madad kar sakta hoon?"})
