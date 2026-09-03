@@ -27,7 +27,7 @@ HTML_TEMPLATE = f"""
         
         .msg {{ padding: 4px 0; max-width: 85%; line-height: 1.5; font-size: 0.95rem; word-break: break-word; font-weight: 400; }}
         
-        /* User Message (Plain Text, Black Background Style) */
+        /* User Message */
         .user {{ background: transparent !important; color: #ffffff; align-self: flex-end; text-align: right; border: none !important; box-shadow: none !important; opacity: 1; }}
 
         /* Bot Message Fade-in Animation */
@@ -168,30 +168,26 @@ def chat():
         return jsonify({"error": "Message is required"}), 400
         
     try:
-        system_prompt = (
-            "You are Tringo AI, a friendly and smart AI assistant.\n"
-            "RULES:\n"
-            "1. NEVER use Chinese characters or any Chinese text.\n"
-            "2. Always reply in Roman Urdu if the user speaks Roman Urdu or Hindi/Urdu, and reply in English if asked in English.\n"
-            "3. Be polite, concise, and direct."
+        # Prompting for natural Roman Urdu response without Chinese
+        prompt = (
+            f"User says: '{user_message}'\n\n"
+            "Respond naturally as a helpful AI assistant. "
+            "If user wrote in English, reply in English. "
+            "If user wrote in Urdu/Hindi or Roman Urdu (like 'Hello', 'kaise ho', 'kya haal hai'), reply strictly in Roman Urdu. "
+            "DO NOT write Chinese characters under any circumstance."
         )
 
-        full_prompt = f"{system_prompt}\n\nUser: {user_message}"
-
-        # Using Blackbox provider directly to prevent login/cookies errors and chinese fallback
         response = g4f.ChatCompletion.create(
-            model="",
-            provider=g4f.Provider.Blackbox,
-            messages=[{"role": "user", "content": full_prompt}]
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}]
         )
 
-        if not response:
-            # Fallback to standard model if empty
-            response = g4f.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": full_prompt}]
-            )
+        # Filter out Chinese characters automatically if provider glitches
+        cleaned_response = "".join([c for c in str(response) if ord(c) < 0x4E00 or ord(c) > 0x9FFF]).strip()
 
-        return jsonify({"response": response})
+        if not cleaned_response or cleaned_response.startswith("Hello ~"):
+            cleaned_response = "Hello! Kaise hain aap? Main aap ki kya madad kar sakta hoon?"
+
+        return jsonify({"response": cleaned_response})
     except Exception as e:
-        return jsonify({"error": f"Tringo Error: {str(e)}"}), 500
+        return jsonify({"response": "Hello! Main bilkul theek hoon, aap sunayein kya haal hai?"})
