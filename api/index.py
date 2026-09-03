@@ -31,11 +31,10 @@ HTML_TEMPLATE = f"""
         .user {{ background: #2563eb; color: white; align-self: flex-end; border-radius: 20px; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); animation: popUser 0.25s ease forwards; opacity: 0; transform: scale(0.95); }}
         @keyframes popUser {{ to {{ opacity: 1; transform: scale(1); }} }}
 
-        /* Bot Message Without Box Frame */
-        .bot {{ background: transparent; color: #f3f4f6; align-self: flex-start; padding: 6px 4px; border: none; box-shadow: none; opacity: 0; animation: popBot 0.25s ease forwards; }}
-        @keyframes popBot {{ to {{ opacity: 1; }} }}
+        /* Bot Plain Text (No Box, Smooth Fade) */
+        .bot {{ background: transparent; color: #f3f4f6; align-self: flex-start; padding: 4px 0; border: none; box-shadow: none; opacity: 1; }}
 
-        .typewriter-text.typing {{ display: inline; border-right: 2px solid #f43f5e; animation: blink 0.75s step-end infinite; }}
+        .typewriter-text.typing {{ display: inline; border-right: 2px solid #f43f5e; animation: blink 0.6s step-end infinite; }}
         @keyframes blink {{ from, to {{ border-color: transparent }} 50% {{ border-color: #f43f5e; }} }}
 
         .input-bar {{ padding: 12px 10px; background: #000000; border-top: 1px solid #1a1a1a; display: flex; align-items: center; gap: 8px; width: 100%; position: relative; }}
@@ -127,6 +126,7 @@ HTML_TEMPLATE = f"""
         function displayTypewriterMessage(text) {{
             const botMsg = document.createElement('div');
             botMsg.className = 'msg bot';
+            
             const textSpan = document.createElement('span');
             textSpan.className = 'typewriter-text typing';
             botMsg.appendChild(textSpan);
@@ -139,7 +139,7 @@ HTML_TEMPLATE = f"""
                     textSpan.textContent += text.charAt(charIndex);
                     charIndex++;
                     chatbox.scrollTop = chatbox.scrollHeight;
-                    setTimeout(typeChar, 18);
+                    setTimeout(typeChar, 20);
                 }} else {{
                     textSpan.classList.remove('typing');
                     textSpan.style.borderRight = 'none';
@@ -172,3 +172,4 @@ def chat():
         return jsonify({"response": response})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
