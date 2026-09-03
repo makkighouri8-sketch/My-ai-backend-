@@ -27,12 +27,17 @@ HTML_TEMPLATE = f"""
         
         .msg {{ padding: 12px 18px; max-width: 85%; line-height: 1.5; font-size: 0.95rem; word-break: break-word; font-weight: 400; }}
         
-        /* User Message Box */
+        /* User Message Bubble */
         .user {{ background: #2563eb; color: white; align-self: flex-end; border-radius: 20px; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); animation: popUser 0.25s ease forwards; opacity: 0; transform: scale(0.95); }}
         @keyframes popUser {{ to {{ opacity: 1; transform: scale(1); }} }}
 
-        /* Bot Plain Text (No Box, Smooth Fade) */
-        .bot {{ background: transparent; color: #f3f4f6; align-self: flex-start; padding: 4px 0; border: none; box-shadow: none; opacity: 1; }}
+        /* Bot Message Without Box Frame */
+        .bot {{ background: transparent !important; color: #f3f4f6; align-self: flex-start; padding: 4px 0; border: none !important; box-shadow: none !important; opacity: 1; }}
+
+        /* Pink Vortex Loader Without Box Frame */
+        .vortex-loader {{ display: flex; align-items: center; gap: 10px; padding: 6px 0; align-self: flex-start; background: transparent !important; border: none !important; box-shadow: none !important; }}
+        .vortex-loader img {{ width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }}
+        .vortex-loader span {{ font-size: 0.88rem; color: #f43f5e; font-weight: 500; opacity: 0.9; }}
 
         .typewriter-text.typing {{ display: inline; border-right: 2px solid #f43f5e; animation: blink 0.6s step-end infinite; }}
         @keyframes blink {{ from, to {{ border-color: transparent }} 50% {{ border-color: #f43f5e; }} }}
@@ -109,6 +114,15 @@ HTML_TEMPLATE = f"""
             input.value = '';
             chatbox.scrollTop = chatbox.scrollHeight;
 
+            // Display "Tringo is thinking..." animation without box
+            const loaderId = 'loader-' + Date.now();
+            const loaderDiv = document.createElement('div');
+            loaderDiv.className = 'vortex-loader';
+            loaderDiv.id = loaderId;
+            loaderDiv.innerHTML = `<img src="{GIF_URL}"><span>Tringo is thinking...</span>`;
+            chatbox.appendChild(loaderDiv);
+            chatbox.scrollTop = chatbox.scrollHeight;
+
             try {{
                 const res = await fetch('/chat', {{
                     method: 'POST',
@@ -117,8 +131,15 @@ HTML_TEMPLATE = f"""
                 }});
                 const data = await res.json();
                 const aiResponse = data.response || data.error;
+                
+                const currentLoader = document.getElementById(loaderId);
+                if (currentLoader) currentLoader.remove();
+                
                 displayTypewriterMessage(aiResponse);
             }} catch (err) {{
+                const currentLoader = document.getElementById(loaderId);
+                if (currentLoader) currentLoader.remove();
+                
                 displayTypewriterMessage("Error connecting to server.");
             }}
         }}
@@ -139,7 +160,7 @@ HTML_TEMPLATE = f"""
                     textSpan.textContent += text.charAt(charIndex);
                     charIndex++;
                     chatbox.scrollTop = chatbox.scrollHeight;
-                    setTimeout(typeChar, 20);
+                    setTimeout(typeChar, 18);
                 }} else {{
                     textSpan.classList.remove('typing');
                     textSpan.style.borderRight = 'none';
@@ -172,4 +193,3 @@ def chat():
         return jsonify({"response": response})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
