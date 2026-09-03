@@ -3,4 +3,6 @@ flask[async]
 gunicorn
 flask
 google-generativeai
+flask
+requests
 
