@@ -25,11 +25,14 @@ HTML_TEMPLATE = f"""
 
         #chatbox {{ flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; background: #000000; }}
         
-        .msg {{ padding: 12px 18px; border-radius: 20px; max-width: 80%; line-height: 1.5; font-size: 0.95rem; word-break: break-word; font-weight: 400; }}
-        .user {{ background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); animation: popUser 0.25s ease forwards; opacity: 0; transform: scale(0.95); }}
+        .msg {{ padding: 12px 18px; max-width: 85%; line-height: 1.5; font-size: 0.95rem; word-break: break-word; font-weight: 400; }}
+        
+        /* User Message Box */
+        .user {{ background: #2563eb; color: white; align-self: flex-end; border-radius: 20px; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); animation: popUser 0.25s ease forwards; opacity: 0; transform: scale(0.95); }}
         @keyframes popUser {{ to {{ opacity: 1; transform: scale(1); }} }}
 
-        .bot {{ background: #121212; color: #f3f4f6; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #222222; opacity: 0; animation: popBot 0.25s ease forwards; }}
+        /* Bot Message Without Box Frame */
+        .bot {{ background: transparent; color: #f3f4f6; align-self: flex-start; padding: 6px 4px; border: none; box-shadow: none; opacity: 0; animation: popBot 0.25s ease forwards; }}
         @keyframes popBot {{ to {{ opacity: 1; }} }}
 
         .typewriter-text.typing {{ display: inline; border-right: 2px solid #f43f5e; animation: blink 0.75s step-end infinite; }}
@@ -139,6 +142,7 @@ HTML_TEMPLATE = f"""
                     setTimeout(typeChar, 18);
                 }} else {{
                     textSpan.classList.remove('typing');
+                    textSpan.style.borderRight = 'none';
                 }}
             }}
             typeChar();
@@ -168,4 +172,3 @@ def chat():
         return jsonify({"response": response})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
