@@ -34,10 +34,10 @@ HTML_TEMPLATE = f"""
         /* Bot Message Without Box Frame */
         .bot {{ background: transparent !important; color: #f3f4f6; align-self: flex-start; padding: 4px 0; border: none !important; box-shadow: none !important; opacity: 1; }}
 
-        /* Pink Vortex Loader Without Box Frame */
-        .vortex-loader {{ display: flex; align-items: center; gap: 10px; padding: 6px 0; align-self: flex-start; background: transparent !important; border: none !important; box-shadow: none !important; }}
-        .vortex-loader img {{ width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }}
-        .vortex-loader span {{ font-size: 0.88rem; color: #f43f5e; font-weight: 500; opacity: 0.9; }}
+        /* Pink Vortex Loader Without Box Frame (Icon Sized Up to 32px) */
+        .vortex-loader {{ display: flex; align-items: center; gap: 12px; padding: 6px 0; align-self: flex-start; background: transparent !important; border: none !important; box-shadow: none !important; }}
+        .vortex-loader img {{ width: 32px; height: 32px; border-radius: 50%; object-fit: cover; filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.4)); }}
+        .vortex-loader span {{ font-size: 0.92rem; color: #f43f5e; font-weight: 500; opacity: 0.95; }}
 
         .typewriter-text.typing {{ display: inline; border-right: 2px solid #f43f5e; animation: blink 0.6s step-end infinite; }}
         @keyframes blink {{ from, to {{ border-color: transparent }} 50% {{ border-color: #f43f5e; }} }}
@@ -114,7 +114,6 @@ HTML_TEMPLATE = f"""
             input.value = '';
             chatbox.scrollTop = chatbox.scrollHeight;
 
-            // Display "Tringo is thinking..." animation without box
             const loaderId = 'loader-' + Date.now();
             const loaderDiv = document.createElement('div');
             loaderDiv.className = 'vortex-loader';
