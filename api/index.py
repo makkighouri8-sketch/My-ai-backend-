@@ -27,19 +27,17 @@ HTML_TEMPLATE = f"""
         
         .msg {{ padding: 4px 0; max-width: 85%; line-height: 1.5; font-size: 0.95rem; word-break: break-word; font-weight: 400; }}
         
-        /* User Message (Plain Text, Black Background Style, Right Aligned) */
+        /* User Message (Plain Text, Black Background Style) */
         .user {{ background: transparent !important; color: #ffffff; align-self: flex-end; text-align: right; border: none !important; box-shadow: none !important; opacity: 1; }}
 
-        /* Bot Message Without Box Frame */
-        .bot {{ background: transparent !important; color: #f3f4f6; align-self: flex-start; text-align: left; border: none !important; box-shadow: none !important; opacity: 1; }}
+        /* Bot Message Fade-in Animation */
+        .bot {{ background: transparent !important; color: #f3f4f6; align-self: flex-start; text-align: left; border: none !important; box-shadow: none !important; animation: fadeInMsg 0.4s ease-out forwards; }}
+        @keyframes fadeInMsg {{ from {{ opacity: 0; transform: translateY(4px); }} to {{ opacity: 1; transform: translateY(0); }} }}
 
-        /* Pink Vortex Loader Without Box Frame (Icon 32px) */
+        /* Loader Without Frame */
         .vortex-loader {{ display: flex; align-items: center; gap: 12px; padding: 6px 0; align-self: flex-start; background: transparent !important; border: none !important; box-shadow: none !important; }}
         .vortex-loader img {{ width: 32px; height: 32px; border-radius: 50%; object-fit: cover; filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.4)); }}
         .vortex-loader span {{ font-size: 0.92rem; color: #f43f5e; font-weight: 500; opacity: 0.95; }}
-
-        .typewriter-text.typing {{ display: inline; border-right: 2px solid #f43f5e; animation: blink 0.6s step-end infinite; }}
-        @keyframes blink {{ from, to {{ border-color: transparent }} 50% {{ border-color: #f43f5e; }} }}
 
         .input-bar {{ padding: 12px 10px; background: #000000; border-top: 1px solid #1a1a1a; display: flex; align-items: center; gap: 8px; width: 100%; position: relative; }}
         .input-field-wrapper {{ flex: 1; background: #121212; border-radius: 26px; border: 1px solid #262626; display: flex; align-items: center; padding: 0 12px; min-width: 0; }}
@@ -133,38 +131,25 @@ HTML_TEMPLATE = f"""
                 const currentLoader = document.getElementById(loaderId);
                 if (currentLoader) currentLoader.remove();
                 
-                displayTypewriterMessage(aiResponse);
+                displayFadeMessage(aiResponse);
             }} catch (err) {{
                 const currentLoader = document.getElementById(loaderId);
                 if (currentLoader) currentLoader.remove();
                 
-                displayTypewriterMessage("Error connecting to server.");
+                displayFadeMessage("Error connecting to server.");
             }}
         }}
 
-        function displayTypewriterMessage(text) {{
+        function displayFadeMessage(text) {{
             const botMsg = document.createElement('div');
             botMsg.className = 'msg bot';
             
             const textSpan = document.createElement('span');
-            textSpan.className = 'typewriter-text typing';
+            textSpan.textContent = text;
             botMsg.appendChild(textSpan);
+            
             chatbox.appendChild(botMsg);
             chatbox.scrollTop = chatbox.scrollHeight;
-
-            let charIndex = 0;
-            function typeChar() {{
-                if (charIndex < text.length) {{
-                    textSpan.textContent += text.charAt(charIndex);
-                    charIndex++;
-                    chatbox.scrollTop = chatbox.scrollHeight;
-                    setTimeout(typeChar, 18);
-                }} else {{
-                    textSpan.classList.remove('typing');
-                    textSpan.style.borderRight = 'none';
-                }}
-            }}
-            typeChar();
         }}
     </script>
 </body>
