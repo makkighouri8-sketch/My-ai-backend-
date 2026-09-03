@@ -1,4 +1,6 @@
 g4f[gui]
 flask[async]
 gunicorn
+flask
+google-generativeai
 
