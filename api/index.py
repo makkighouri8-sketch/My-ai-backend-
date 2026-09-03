@@ -3,7 +3,6 @@ import g4f
 
 app = Flask(__name__)
 
-# Aapki uploaded ImgBB GIF ka exact link
 GIF_URL = "https://i.ibb.co/dsH5qcZc/56698194ba8737a1c0c66786390374b0.gif"
 
 HTML_TEMPLATE = f"""
@@ -14,49 +13,44 @@ HTML_TEMPLATE = f"""
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tringo AI</title>
     
-    <!-- Favicon / App Tab Icon -->
     <link rel="icon" type="image/gif" href="{GIF_URL}">
     <link rel="apple-touch-icon" href="{GIF_URL}">
 
     <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }}
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0f19; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #000000; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }}
         
-        .header {{ padding: 12px 20px; background: #111827; border-bottom: 1px solid #1f2937; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold; font-size: 1.2rem; color: #f43f5e; }}
-        .header-icon {{ width: 32px; height: 32px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 10px rgba(244, 63, 94, 0.6); }}
+        .header {{ padding: 14px 20px; background: #000000; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 700; font-size: 1.2rem; color: #f43f5e; }}
+        .header-icon {{ width: 30px; height: 30px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 10px rgba(244, 63, 94, 0.5); }}
 
-        #chatbox {{ flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: radial-gradient(circle at center, #111827 0%, #0b0f19 100%); }}
+        #chatbox {{ flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; background: #000000; }}
         
-        .msg {{ padding: 12px 16px; border-radius: 18px; max-width: 82%; line-height: 1.5; font-size: 0.95rem; word-break: break-word; }}
-        .user {{ background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); animation: popUser 0.3s ease forwards; opacity: 0; transform: scale(0.95); }}
+        .msg {{ padding: 12px 18px; border-radius: 20px; max-width: 80%; line-height: 1.5; font-size: 0.95rem; word-break: break-word; font-weight: 400; }}
+        .user {{ background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); animation: popUser 0.25s ease forwards; opacity: 0; transform: scale(0.95); }}
         @keyframes popUser {{ to {{ opacity: 1; transform: scale(1); }} }}
 
-        .bot {{ background: #1f2937; color: #e5e7eb; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #374151; opacity: 0; animation: popBot 0.3s ease forwards; }}
+        .bot {{ background: #121212; color: #f3f4f6; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #222222; opacity: 0; animation: popBot 0.25s ease forwards; }}
         @keyframes popBot {{ to {{ opacity: 1; }} }}
 
         .typewriter-text.typing {{ display: inline; border-right: 2px solid #f43f5e; animation: blink 0.75s step-end infinite; }}
         @keyframes blink {{ from, to {{ border-color: transparent }} 50% {{ border-color: #f43f5e; }} }}
 
-        .vortex-loader {{ display: flex; align-items: center; gap: 10px; background: #1f2937; padding: 8px 14px; border-radius: 18px; align-self: flex-start; border: 1px solid #374151; }}
-        .vortex-loader img {{ width: 28px; height: 28px; border-radius: 50%; }}
-        .vortex-loader span {{ font-size: 0.85rem; color: #f43f5e; font-weight: 500; }}
-
-        .input-bar {{ padding: 10px 8px; background: #111827; border-top: 1px solid #1f2937; display: flex; align-items: center; gap: 6px; width: 100%; position: relative; }}
-        .input-field-wrapper {{ flex: 1; background: #1f2937; border-radius: 24px; border: 1px solid #374151; display: flex; align-items: center; padding: 0 10px; min-width: 0; }}
-        .input-field-wrapper:focus-within {{ border-color: #f43f5e; background: #1a2233; }}
-        input {{ flex: 1; padding: 10px 6px; border: none; background: transparent; color: #fff; outline: none; font-size: 0.95rem; min-width: 0; }}
+        .input-bar {{ padding: 12px 10px; background: #000000; border-top: 1px solid #1a1a1a; display: flex; align-items: center; gap: 8px; width: 100%; position: relative; }}
+        .input-field-wrapper {{ flex: 1; background: #121212; border-radius: 26px; border: 1px solid #262626; display: flex; align-items: center; padding: 0 12px; min-width: 0; }}
+        .input-field-wrapper:focus-within {{ border-color: #f43f5e; background: #171717; }}
+        input {{ flex: 1; padding: 12px 6px; border: none; background: transparent; color: #fff; outline: none; font-size: 0.95rem; min-width: 0; }}
         
-        .icon-btn {{ background: none; border: none; color: #9ca3af; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; flex-shrink: 0; }}
+        .icon-btn {{ background: none; border: none; color: #a3a3a3; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; flex-shrink: 0; }}
         .icon-btn:hover {{ color: #f43f5e; }}
         
         .mic-btn svg {{ width: 20px; height: 20px; fill: currentColor; }}
-        .send-btn {{ border-radius: 50%; width: 42px; height: 42px; border: none; background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: #fff; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 10px rgba(244, 63, 94, 0.3); }}
+        .send-btn {{ border-radius: 50%; width: 44px; height: 44px; border: none; background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: #fff; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.35); }}
 
-        .menu-modal {{ display: none; position: absolute; bottom: 65px; left: 10px; background: #1f2937; border: 1px solid #374151; border-radius: 12px; padding: 8px 0; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; min-width: 160px; }}
+        .menu-modal {{ display: none; position: absolute; bottom: 70px; left: 10px; background: #121212; border: 1px solid #262626; border-radius: 14px; padding: 8px 0; box-shadow: 0 10px 25px rgba(0,0,0,0.8); z-index: 100; min-width: 170px; }}
         .menu-modal.active {{ display: block; animation: popUp 0.2s ease; }}
         @keyframes popUp {{ from {{ opacity: 0; transform: translateY(10px); }} to {{ opacity: 1; transform: translateY(0); }} }}
         .menu-item {{ padding: 10px 16px; color: #e5e7eb; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; cursor: pointer; }}
-        .menu-item:hover {{ background: #374151; color: #f43f5e; }}
+        .menu-item:hover {{ background: #262626; color: #f43f5e; }}
     </style>
 </head>
 <body>
@@ -65,7 +59,7 @@ HTML_TEMPLATE = f"""
         <span>Tringo AI</span>
     </div>
     <div id="chatbox">
-        <div class="msg bot"><span>Welcome to Tringo AI! How can I assist you today?</span></div>
+        <div class="msg bot"><span>Hello! How can I assist you today?</span></div>
     </div>
     
     <div class="menu-modal" id="plusMenu">
@@ -113,14 +107,6 @@ HTML_TEMPLATE = f"""
             input.value = '';
             chatbox.scrollTop = chatbox.scrollHeight;
 
-            const loaderId = 'loader-' + Date.now();
-            chatbox.innerHTML += `
-                <div class="vortex-loader" id="${{loaderId}}">
-                    <img src="{GIF_URL}">
-                    <span>Tringo is thinking...</span>
-                </div>`;
-            chatbox.scrollTop = chatbox.scrollHeight;
-
             try {{
                 const res = await fetch('/chat', {{
                     method: 'POST',
@@ -129,10 +115,8 @@ HTML_TEMPLATE = f"""
                 }});
                 const data = await res.json();
                 const aiResponse = data.response || data.error;
-                document.getElementById(loaderId).remove();
                 displayTypewriterMessage(aiResponse);
             }} catch (err) {{
-                document.getElementById(loaderId).remove();
                 displayTypewriterMessage("Error connecting to server.");
             }}
         }}
@@ -152,7 +136,7 @@ HTML_TEMPLATE = f"""
                     textSpan.textContent += text.charAt(charIndex);
                     charIndex++;
                     chatbox.scrollTop = chatbox.scrollHeight;
-                    setTimeout(typeChar, 20);
+                    setTimeout(typeChar, 18);
                 }} else {{
                     textSpan.classList.remove('typing');
                 }}
@@ -176,8 +160,12 @@ def chat():
     try:
         response = g4f.ChatCompletion.create(
             model=g4f.models.gpt_4,
-            messages=[{"role": "user", "content": user_message}]
+            messages=[
+                {"role": "system", "content": "You are Tringo AI. ALWAYS reply in the exact same language and script that the user uses to speak to you. If the user writes in Roman Urdu, reply strictly in Roman Urdu. Never use Chinese unless the user speaks Chinese."},
+                {"role": "user", "content": user_message}
+            ]
         )
         return jsonify({"response": response})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
