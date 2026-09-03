@@ -164,12 +164,23 @@ def home():
 def chat():
     data = request.json or {}
     user_message = data.get('message', '')
-    if not user_message: return jsonify({"error": "Message is required"}), 400
+    if not user_message: 
+        return jsonify({"error": "Message is required"}), 400
+        
     try:
+        system_instructions = (
+            "You are Tringo AI, a helpful, friendly, and smart AI assistant. "
+            "STRICT RULES YOU MUST FOLLOW:\n"
+            "1. NEVER output Chinese characters or Chinese text under any circumstances.\n"
+            "2. If the user writes in English, reply in friendly English.\n"
+            "3. If the user writes in Roman Urdu (e.g. 'kaise ho', 'kya kar rahe ho'), reply strictly in Roman Urdu with a warm tone.\n"
+            "4. Match the exact language style of the user."
+        )
+
         response = g4f.ChatCompletion.create(
-            model=g4f.models.gpt_4,
+            model=g4f.models.gpt_4o,
             messages=[
-                {"role": "system", "content": "You are Tringo AI. ALWAYS reply in the exact same language and script that the user uses to speak to you. If the user writes in Roman Urdu, reply strictly in Roman Urdu. Never use Chinese unless the user speaks Chinese."},
+                {"role": "system", "content": system_instructions},
                 {"role": "user", "content": user_message}
             ]
         )
