@@ -168,22 +168,30 @@ def chat():
         return jsonify({"error": "Message is required"}), 400
         
     try:
-        system_instructions = (
-            "You are Tringo AI, a helpful, friendly, and smart AI assistant. "
-            "STRICT RULES YOU MUST FOLLOW:\n"
-            "1. NEVER output Chinese characters or Chinese text under any circumstances.\n"
-            "2. If the user writes in English, reply in friendly English.\n"
-            "3. If the user writes in Roman Urdu (e.g. 'kaise ho', 'kya kar rahe ho'), reply strictly in Roman Urdu with a warm tone.\n"
-            "4. Match the exact language style of the user."
+        system_prompt = (
+            "You are Tringo AI, a friendly and smart AI assistant.\n"
+            "RULES:\n"
+            "1. NEVER use Chinese characters or any Chinese text.\n"
+            "2. Always reply in Roman Urdu if the user speaks Roman Urdu or Hindi/Urdu, and reply in English if asked in English.\n"
+            "3. Be polite, concise, and direct."
         )
 
+        full_prompt = f"{system_prompt}\n\nUser: {user_message}"
+
+        # Using Blackbox provider directly to prevent login/cookies errors and chinese fallback
         response = g4f.ChatCompletion.create(
-            model=g4f.models.gpt_4o,
-            messages=[
-                {"role": "system", "content": system_instructions},
-                {"role": "user", "content": user_message}
-            ]
+            model="",
+            provider=g4f.Provider.Blackbox,
+            messages=[{"role": "user", "content": full_prompt}]
         )
+
+        if not response:
+            # Fallback to standard model if empty
+            response = g4f.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": full_prompt}]
+            )
+
         return jsonify({"response": response})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Tringo Error: {str(e)}"}), 500
