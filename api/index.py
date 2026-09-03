@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template_string
 import g4f
+import re
 
 app = Flask(__name__)
 
@@ -136,7 +137,7 @@ HTML_TEMPLATE = f"""
                 const currentLoader = document.getElementById(loaderId);
                 if (currentLoader) currentLoader.remove();
                 
-                displayFadeMessage("Error connecting to server.");
+                displayFadeMessage("Server issue, please try again.");
             }}
         }}
 
@@ -167,27 +168,28 @@ def chat():
     if not user_message: 
         return jsonify({"error": "Message is required"}), 400
         
-    try:
-        # Prompting for natural Roman Urdu response without Chinese
-        prompt = (
-            f"User says: '{user_message}'\n\n"
-            "Respond naturally as a helpful AI assistant. "
-            "If user wrote in English, reply in English. "
-            "If user wrote in Urdu/Hindi or Roman Urdu (like 'Hello', 'kaise ho', 'kya haal hai'), reply strictly in Roman Urdu. "
-            "DO NOT write Chinese characters under any circumstance."
-        )
+    system_prompt = (
+        "System: You are Tringo AI, a friendly assistant. "
+        "Strict Rule: Answer in Roman Urdu if the user writes in Roman Urdu or Urdu. Answer in English if in English. "
+        "NEVER USE CHINESE CHARACTERS.\n\n"
+        f"User: {user_message}"
+    )
 
-        response = g4f.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}]
-        )
+    models_to_try = ["gemini-pro", "gpt-3.5-turbo"]
+    
+    for model in models_to_try:
+        try:
+            response = g4f.ChatCompletion.create(
+                model=model,
+                messages=[{"role": "user", "content": system_prompt}]
+            )
+            if response:
+                # Remove Chinese/non-ASCII glyphs if provider injects them
+                cleaned = re.sub(r'[\u4e00-\u9fff]+', '', str(response)).strip()
+                if cleaned:
+                    return jsonify({"response": cleaned})
+        except Exception:
+            continue
 
-        # Filter out Chinese characters automatically if provider glitches
-        cleaned_response = "".join([c for c in str(response) if ord(c) < 0x4E00 or ord(c) > 0x9FFF]).strip()
-
-        if not cleaned_response or cleaned_response.startswith("Hello ~"):
-            cleaned_response = "Hello! Kaise hain aap? Main aap ki kya madad kar sakta hoon?"
-
-        return jsonify({"response": cleaned_response})
-    except Exception as e:
-        return jsonify({"response": "Hello! Main bilkul theek hoon, aap sunayein kya haal hai?"})
+    # Fail-safe local backup
+    return jsonify({"response": "Haan bhai, bolo! Main aap ki kya madad kar sakta hoon?"})
