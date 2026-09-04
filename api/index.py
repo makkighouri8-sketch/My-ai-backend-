@@ -169,4 +169,3 @@ def chat():
         return jsonify({"response": response.text})
     except Exception as e:
         return jsonify({"response": f"API Error: {str(e)}"})
-
