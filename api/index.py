@@ -1,10 +1,25 @@
 from flask import Flask, request, jsonify, render_template_string
-import requests
+import google.generativeai as genai
 
 app = Flask(__name__)
 
-# Aapki screenshot wali poori key fit kar di hai:
+# Tumhari key
 GEMINI_API_KEY = "AQ.Ab8RN6K6W9bHr3x-issUTTrhHn"
+
+# Gemini SDK Configure
+genai.configure(api_key=GEMINI_API_KEY)
+
+# Model initialize
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    system_instruction=(
+        "You are Tringo AI, a smart and friendly AI assistant.\n"
+        "Rules:\n"
+        "1. Talk naturally like a human friend in Roman Urdu if user speaks in Urdu or Roman Urdu.\n"
+        "2. Respond in English if user speaks in English.\n"
+        "3. Do NOT repeat static phrases. Give actual answers according to what user asks."
+    )
+)
 
 GIF_URL = "https://i.ibb.co/dsH5qcZc/56698194ba8737a1c0c66786390374b0.gif"
 
@@ -149,43 +164,9 @@ def chat():
     if not user_message: 
         return jsonify({"error": "Message required"}), 400
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-
-    payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [
-                    {"text": user_message}
-                ]
-            }
-        ],
-        "systemInstruction": {
-            "parts": [
-                {
-                    "text": (
-                        "You are Tringo AI, a smart and friendly AI assistant.\n"
-                        "Rules:\n"
-                        "1. Talk naturally like a human friend in Roman Urdu if user speaks in Urdu or Roman Urdu.\n"
-                        "2. Respond in English if user speaks in English.\n"
-                        "3. Do NOT repeat static phrases. Give actual answers according to what user asks."
-                    )
-                }
-            ]
-        }
-    }
-
     try:
-        response = requests.post(url, json=payload, headers={'Content-Type': 'application/json'}, timeout=15)
-        res_data = response.json()
-
-        if "candidates" in res_data and len(res_data["candidates"]) > 0:
-            reply = res_data["candidates"][0]["content"]["parts"][0]["text"]
-            return jsonify({"response": reply})
-        elif "error" in res_data:
-            return jsonify({"response": f"API Error: {res_data['error'].get('message')}"})
-        else:
-            return jsonify({"response": "Koi response nahi mila, dobara try karein."})
-
+        response = model.generate_content(user_message)
+        return jsonify({"response": response.text})
     except Exception as e:
-        return jsonify({"response": f"Server Connection Error: {str(e)}"})
+        return jsonify({"response": f"API Error: {str(e)}"})
+
