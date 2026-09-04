@@ -27,22 +27,23 @@ HTML_TEMPLATE = f"""
         .vortex-loader img {{ width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }}
         .vortex-loader span {{ font-size: 0.92rem; color: #f43f5e; font-weight: 500; }}
         
-        /* Image Preview Area */
         #previewContainer {{ display: none; padding: 8px 14px; background: #121212; border-top: 1px solid #262626; align-items: center; gap: 10px; }}
         #previewContainer img {{ width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid #f43f5e; }}
         #removeImgBtn {{ color: #f43f5e; cursor: pointer; font-weight: bold; font-size: 1.2rem; background: none; border: none; }}
 
-        .input-bar {{ padding: 12px 10px; background: #000000; border-top: 1px solid #1a1a1a; display: flex; align-items: center; gap: 8px; width: 100%; position: relative; }}
+        .input-bar {{ padding: 12px 10px; background: #000000; border-top: 1px solid #1a1a1a; display: flex; align-items: center; gap: 8px; width: 100%; position: relative; z-index: 10; }}
         .input-field-wrapper {{ flex: 1; background: #121212; border-radius: 26px; border: 1px solid #262626; display: flex; align-items: center; padding: 0 12px; }}
         .input-field-wrapper:focus-within {{ border-color: #f43f5e; background: #171717; }}
         input[type="text"] {{ flex: 1; padding: 12px 6px; border: none; background: transparent; color: #fff; outline: none; font-size: 0.95rem; }}
-        .icon-btn {{ background: none; border: none; color: #a3a3a3; font-size: 1.3rem; cursor: pointer; padding: 6px; }}
+        .icon-btn {{ background: none; border: none; color: #a3a3a3; font-size: 1.5rem; cursor: pointer; padding: 6px 10px; display: flex; align-items: center; justify-content: center; }}
         .send-btn {{ border-radius: 50%; width: 44px; height: 44px; border: none; background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: #fff; font-size: 1.1rem; cursor: pointer; }}
         
-        .menu-modal {{ display: none; position: absolute; bottom: 70px; left: 10px; background: #121212; border: 1px solid #262626; border-radius: 14px; padding: 8px 0; z-index: 100; min-width: 170px; }}
-        .menu-modal.active {{ display: block; }}
-        .menu-item {{ padding: 10px 16px; color: #e5e7eb; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; cursor: pointer; }}
-        .menu-item:hover {{ background: #262626; color: #f43f5e; }}
+        /* Fixed Modal Popup */
+        .menu-modal {{ display: none; position: fixed; bottom: 70px; left: 12px; background: #171717; border: 1px solid #333; border-radius: 16px; padding: 6px 0; z-index: 99999; min-width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }}
+        .menu-modal.show {{ display: block !important; }}
+        .menu-item {{ padding: 12px 16px; color: #fff; font-size: 0.95rem; display: flex; align-items: center; gap: 10px; cursor: pointer; border-bottom: 1px solid #222; }}
+        .menu-item:last-child {{ border-bottom: none; }}
+        .menu-item:active {{ background: #262626; color: #f43f5e; }}
     </style>
 </head>
 <body>
@@ -54,17 +55,16 @@ HTML_TEMPLATE = f"""
         <div class="msg bot"><span>Hello! How can I assist you today?</span></div>
     </div>
 
-    <!-- Hidden Input Fields -->
     <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
     <input type="file" id="fileInput" accept="*/*" style="display: none;" onchange="handleFileSelect(event)">
 
-    <!-- Image Preview Container -->
     <div id="previewContainer">
         <img id="imgPreview" src="" alt="Preview">
         <span id="fileNameDisplay" style="font-size: 0.85rem; color: #ccc;"></span>
         <button id="removeImgBtn" onclick="clearSelectedFile()">✕</button>
     </div>
 
+    <!-- Plus Options Popup -->
     <div class="menu-modal" id="plusMenu">
         <div class="menu-item" onclick="openGallery()">📷 Upload Image</div>
         <div class="menu-item" onclick="openFilePicker()">📁 Attach File</div>
@@ -72,7 +72,7 @@ HTML_TEMPLATE = f"""
     </div>
 
     <div class="input-bar">
-        <button class="icon-btn" onclick="toggleMenu(event)">+</button>
+        <button class="icon-btn" id="plusBtn" type="button">+</button>
         <div class="input-field-wrapper">
             <input type="text" id="userInput" placeholder="Ask Tringo..." onkeydown="if(event.key==='Enter') sendMessage()">
         </div>
@@ -83,25 +83,35 @@ HTML_TEMPLATE = f"""
         const chatbox = document.getElementById('chatbox');
         const input = document.getElementById('userInput');
         const plusMenu = document.getElementById('plusMenu');
+        const plusBtn = document.getElementById('plusBtn');
         let selectedBase64 = null;
         let selectedMimeType = null;
 
-        function toggleMenu(e) {{ e.stopPropagation(); plusMenu.classList.toggle('active'); }}
-        document.addEventListener('click', () => plusMenu.classList.remove('active'));
+        // Proper Mobile Touch Handler for Plus Button
+        plusBtn.addEventListener('click', function(e) {{
+            e.stopPropagation();
+            plusMenu.classList.toggle('show');
+        }});
+
+        document.addEventListener('click', function(e) {{
+            if (!plusMenu.contains(e.target) && e.target !== plusBtn) {{
+                plusMenu.classList.remove('show');
+            }}
+        }});
 
         function openGallery() {{
-            plusMenu.classList.remove('active');
+            plusMenu.classList.remove('show');
             document.getElementById('imageInput').click();
         }}
 
         function openFilePicker() {{
-            plusMenu.classList.remove('active');
+            plusMenu.classList.remove('show');
             document.getElementById('fileInput').click();
         }}
 
         function pasteCodeTemplate() {{
-            plusMenu.classList.remove('active');
-            input.value = "```\n// Paste code here\n```";
+            plusMenu.classList.remove('show');
+            input.value = "```\\n// Paste code here\\n```";
             input.focus();
         }}
 
