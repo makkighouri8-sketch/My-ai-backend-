@@ -20,9 +20,14 @@ HTML_TEMPLATE = f"""
         .header {{ padding: 14px 20px; background: #000000; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 700; font-size: 1.2rem; color: #f43f5e; }}
         .header-icon {{ width: 30px; height: 30px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 10px rgba(244, 63, 94, 0.5); }}
         #chatbox {{ flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; background: #000000; }}
-        .msg {{ padding: 4px 0; max-width: 85%; line-height: 1.5; font-size: 0.95rem; word-break: break-word; font-weight: 400; }}
-        .user {{ background: transparent !important; color: #ffffff; align-self: flex-end; text-align: right; }}
-        .bot {{ background: transparent !important; color: #f3f4f6; align-self: flex-start; text-align: left; animation: fadeInMsg 0.4s ease-out forwards; }}
+        
+        .msg {{ max-width: 85%; line-height: 1.5; font-size: 0.95rem; word-break: break-word; font-weight: 400; display: flex; flex-direction: column; gap: 6px; }}
+        .user {{ align-self: flex-end; text-align: right; background: transparent; color: #ffffff; }}
+        .bot {{ align-self: flex-start; text-align: left; background: transparent; color: #f3f4f6; animation: fadeInMsg 0.4s ease-out forwards; }}
+        
+        /* Chat Image Bubble Styling */
+        .chat-img-thumb {{ max-width: 220px; max-height: 220px; border-radius: 14px; object-fit: cover; border: 1px solid #f43f5e; margin-bottom: 4px; align-self: flex-end; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2); }}
+
         .vortex-loader {{ display: flex; align-items: center; gap: 12px; padding: 6px 0; align-self: flex-start; }}
         .vortex-loader img {{ width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }}
         .vortex-loader span {{ font-size: 0.92rem; color: #f43f5e; font-weight: 500; }}
@@ -38,7 +43,6 @@ HTML_TEMPLATE = f"""
         .icon-btn {{ background: none; border: none; color: #a3a3a3; font-size: 1.5rem; cursor: pointer; padding: 6px 10px; display: flex; align-items: center; justify-content: center; }}
         .send-btn {{ border-radius: 50%; width: 44px; height: 44px; border: none; background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: #fff; font-size: 1.1rem; cursor: pointer; }}
         
-        /* Fixed Modal Popup */
         .menu-modal {{ display: none; position: fixed; bottom: 70px; left: 12px; background: #171717; border: 1px solid #333; border-radius: 16px; padding: 6px 0; z-index: 99999; min-width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }}
         .menu-modal.show {{ display: block !important; }}
         .menu-item {{ padding: 12px 16px; color: #fff; font-size: 0.95rem; display: flex; align-items: center; gap: 10px; cursor: pointer; border-bottom: 1px solid #222; }}
@@ -64,7 +68,6 @@ HTML_TEMPLATE = f"""
         <button id="removeImgBtn" onclick="clearSelectedFile()">✕</button>
     </div>
 
-    <!-- Plus Options Popup -->
     <div class="menu-modal" id="plusMenu">
         <div class="menu-item" onclick="openGallery()">📷 Upload Image</div>
         <div class="menu-item" onclick="openFilePicker()">📁 Attach File</div>
@@ -86,8 +89,8 @@ HTML_TEMPLATE = f"""
         const plusBtn = document.getElementById('plusBtn');
         let selectedBase64 = null;
         let selectedMimeType = null;
+        let selectedDataUrl = null;
 
-        // Proper Mobile Touch Handler for Plus Button
         plusBtn.addEventListener('click', function(e) {{
             e.stopPropagation();
             plusMenu.classList.toggle('show');
@@ -122,6 +125,7 @@ HTML_TEMPLATE = f"""
             selectedMimeType = file.type;
             const reader = new FileReader();
             reader.onload = function(e) {{
+                selectedDataUrl = e.target.result;
                 selectedBase64 = e.target.result.split(',')[1];
                 document.getElementById('imgPreview').src = e.target.result;
                 document.getElementById('imgPreview').style.display = "block";
@@ -138,6 +142,7 @@ HTML_TEMPLATE = f"""
             selectedMimeType = file.type || "application/octet-stream";
             const reader = new FileReader();
             reader.onload = function(e) {{
+                selectedDataUrl = null;
                 selectedBase64 = e.target.result.split(',')[1];
                 document.getElementById('imgPreview').style.display = "none";
                 document.getElementById('fileNameDisplay').textContent = "📁 " + file.name;
@@ -149,6 +154,7 @@ HTML_TEMPLATE = f"""
         function clearSelectedFile() {{
             selectedBase64 = null;
             selectedMimeType = null;
+            selectedDataUrl = null;
             document.getElementById('imageInput').value = "";
             document.getElementById('fileInput').value = "";
             document.getElementById('previewContainer').style.display = "none";
@@ -160,7 +166,21 @@ HTML_TEMPLATE = f"""
 
             const userMsg = document.createElement('div');
             userMsg.className = 'msg user';
-            userMsg.textContent = msgText + (selectedBase64 ? " 📷 [Attachment Attached]" : "");
+
+            // Agar Image Attach Hui Hai to Render Image in Chat
+            if (selectedDataUrl && selectedMimeType.startsWith('image/')) {{
+                const imgElement = document.createElement('img');
+                imgElement.src = selectedDataUrl;
+                imgElement.className = 'chat-img-thumb';
+                userMsg.appendChild(imgElement);
+            }}
+
+            if (msgText) {{
+                const textSpan = document.createElement('span');
+                textSpan.textContent = msgText;
+                userMsg.appendChild(textSpan);
+            }}
+
             chatbox.appendChild(userMsg);
 
             const payloadData = {{
