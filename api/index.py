@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string, send_from_directory
 import os
 import requests
 
@@ -6,6 +6,11 @@ app = Flask(__name__)
 
 # Vercel environment variable se key lega, agar na mile toh fallback key
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY")
+
+# Static route to serve the 3D model properly on Vercel
+@app.route('/avatar.glb')
+def serve_avatar():
+    return send_from_directory(os.path.dirname(__file__), 'avatar.glb')
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -69,13 +74,14 @@ HTML_TEMPLATE = """
             scene.add(dirLight);
 
             const loader = new THREE.GLTFLoader();
-            loader.load('/api/avatar.glb', function (gltf) {
+            loader.load('/avatar.glb', function (gltf) {
                 model = gltf.scene;
                 model.position.set(0, 0, 0);
                 scene.add(model);
+                document.getElementById('subtitles').textContent = "Hi! I am Tringo AI. Ask me anything!";
                 animate();
             }, undefined, function (error) {
-                document.getElementById('subtitles').textContent = "Avatar loading... (Ensure avatar.glb is inside api/ folder)";
+                document.getElementById('subtitles').textContent = "Avatar loading issue. Checking path...";
             });
         }
 
@@ -197,6 +203,5 @@ def chat():
     except Exception as e:
         return jsonify({"response": "I am having trouble connecting right now."})
 
-# Required for Vercel Serverless Function
 app = app
                           
