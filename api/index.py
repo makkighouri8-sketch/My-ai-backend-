@@ -4,10 +4,8 @@ import requests
 
 app = Flask(__name__)
 
-# Vercel environment variable se key lega, agar na mile toh fallback key
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY")
 
-# Static route to serve the 3D model properly on Vercel
 @app.route('/avatar.glb')
 def serve_avatar():
     return send_from_directory(os.path.dirname(__file__), 'avatar.glb')
@@ -18,43 +16,87 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tringo AI 3D</title>
+    <title>Tringo AI</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: sans-serif; background: #000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        #avatarContainer { flex: 1; width: 100%; position: relative; background: #080808; }
+        body { font-family: sans-serif; background: #000000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
-        #headerTitle { position: absolute; top: 15px; width: 100%; text-align: center; font-size: 1.2rem; font-weight: bold; color: #ff2a5f; z-index: 10; text-shadow: 0 0 10px rgba(255,42,95,0.5); }
-        #subtitles { position: absolute; top: 50px; left: 5%; width: 90%; background: rgba(0,0,0,0.7); padding: 10px 14px; border-radius: 10px; text-align: center; font-size: 0.9rem; border: 1px solid #333; z-index: 5; }
+        /* Navigation Tabs */
+        .nav-tabs { display: flex; background: #000000; border-bottom: 1px solid #222; z-index: 30; }
+        .tab-btn { flex: 1; padding: 14px 0; background: none; border: none; color: #888; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { color: #ff2a5f; border-bottom: 2px solid #ff2a5f; }
 
+        .section { display: none; flex: 1; width: 100%; height: 100%; position: relative; background: #000000; }
+        .section.active { display: flex; flex-direction: column; }
+
+        /* Section 1: Chat Mode */
+        #avatarContainer { width: 100%; height: 100%; background: #000000; position: relative; }
+        #subtitles { position: absolute; top: 20px; left: 5%; width: 90%; background: rgba(10,10,10,0.85); padding: 12px; border-radius: 12px; text-align: center; font-size: 0.9rem; border: 1px solid #222; z-index: 5; }
         .controls-overlay { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; z-index: 20; padding: 0 12px; }
-        
-        .chat-input { flex: 1; padding: 12px 16px; border-radius: 25px; border: 1px solid #444; background: rgba(20,20,20,0.9); color: #fff; font-size: 0.95rem; outline: none; }
+        .chat-input { flex: 1; padding: 12px 16px; border-radius: 25px; border: 1px solid #333; background: #000000; color: #fff; font-size: 0.95rem; outline: none; }
         .send-btn { padding: 12px 18px; border-radius: 25px; border: none; background: #ff2a5f; color: #fff; font-weight: bold; cursor: pointer; flex-shrink: 0; }
         .mic-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: #22c55e; color: #fff; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-        .mic-btn.listening { animation: pulse 1s infinite; background: #ef4444; }
 
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        /* Section 2: Video Generator Mode */
+        #videoStudio { padding: 20px; background: #000000; display: flex; flex-direction: column; gap: 15px; }
+        .studio-card { background: #0a0a0a; border: 1px solid #222; padding: 15px; border-radius: 12px; }
+        .studio-card h3 { color: #ff2a5f; font-size: 1.1rem; margin-bottom: 10px; }
+        .studio-input { width: 100%; height: 80px; background: #000000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 10px; outline: none; }
+        .gen-btn { width: 100%; padding: 12px; background: #ff2a5f; border: none; color: #fff; font-weight: bold; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="avatarContainer">
-        <div id="headerTitle">🌀 Tringo AI</div>
-        <div id="subtitles">Ask me anything or tap Mic to speak!</div>
-        
-        <div class="controls-overlay">
-            <button class="mic-btn" id="micBtn" onclick="toggleVoiceInput()">🎙️</button>
-            <input type="text" id="userInput" class="chat-input" placeholder="Message Tringo AI..." onkeypress="handleKeyPress(event)">
-            <button class="send-btn" onclick="sendTextMessage()">Send</button>
+    <!-- Header Tabs -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('chat')">💬 AI Chat</button>
+        <button class="tab-btn" onclick="switchTab('studio')">🎬 3D Video Studio</button>
+    </div>
+
+    <!-- Section 1: AI Chat -->
+    <div id="chatSection" class="section active">
+        <div id="avatarContainer">
+            <div id="subtitles">Ask me anything or speak to Tringo!</div>
+            <div class="controls-overlay">
+                <button class="mic-btn" id="micBtn" onclick="toggleVoiceInput()">🎙️</button>
+                <input type="text" id="userInput" class="chat-input" placeholder="Message Tringo AI..." onkeypress="handleKeyPress(event)">
+                <button class="send-btn" onclick="sendTextMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: AI Video Generator -->
+    <div id="studioSection" class="section">
+        <div id="videoStudio">
+            <div class="studio-card">
+                <h3>🎥 Generate 3D Animation Video</h3>
+                <textarea class="studio-input" id="promptInput" placeholder="Describe your 3D animation scene (e.g., A funny 3D character talking about finance in space)..."></textarea>
+                <button class="gen-btn" onclick="generateVideo()">Render 3D Video</button>
+            </div>
+            <div class="studio-card" id="statusCard" style="display:none;">
+                <h3>Status</h3>
+                <p id="statusText">Processing prompt and creating 3D scene...</p>
+            </div>
         </div>
     </div>
 
     <script>
         let scene, camera, renderer, model;
-        let isSpeaking = false;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+
+            if (tab === 'chat') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('chatSection').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('studioSection').classList.add('active');
+            }
+        }
 
         function init3D() {
             const container = document.getElementById('avatarContainer');
@@ -64,89 +106,41 @@ HTML_TEMPLATE = """
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setClearColor(0x000000, 1);
             container.appendChild(renderer.domElement);
 
             const light = new THREE.AmbientLight(0xffffff, 1.5);
             scene.add(light);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-            dirLight.position.set(0, 10, 10);
-            scene.add(dirLight);
 
             const loader = new THREE.GLTFLoader();
             loader.load('/avatar.glb', function (gltf) {
                 model = gltf.scene;
-                model.position.set(0, 0, 0);
                 scene.add(model);
-                document.getElementById('subtitles').textContent = "Hi! I am Tringo AI. Ask me anything!";
                 animate();
-            }, undefined, function (error) {
-                document.getElementById('subtitles').textContent = "Avatar loading issue. Checking path...";
-            });
+            }, undefined, function () {});
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            if (isSpeaking && model) {
-                model.rotation.y = Math.sin(Date.now() * 0.006) * 0.08;
-                model.position.y = Math.sin(Date.now() * 0.01) * 0.005;
-            } else if (model) {
-                model.rotation.y = Math.sin(Date.now() * 0.001) * 0.02;
-            }
+            if (model) model.rotation.y = Math.sin(Date.now() * 0.001) * 0.02;
             renderer.render(scene, camera);
         }
 
-        const subtitles = document.getElementById('subtitles');
-
         async function processUserMessage(text) {
             if (!text.trim()) return;
-            subtitles.textContent = "You: " + text;
-            
+            document.getElementById('subtitles').textContent = "You: " + text;
             const botReply = await askGemini(text);
-            subtitles.textContent = "Tringo: " + botReply;
-            speakResponse(botReply);
+            document.getElementById('subtitles').textContent = "Tringo: " + botReply;
         }
 
         function sendTextMessage() {
             const input = document.getElementById('userInput');
-            const text = input.value;
+            processUserMessage(input.value);
             input.value = '';
-            processUserMessage(text);
         }
 
         function handleKeyPress(e) {
             if (e.key === 'Enter') sendTextMessage();
-        }
-
-        // Speech Recognition
-        const micBtn = document.getElementById('micBtn');
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
-
-            function toggleVoiceInput() {
-                try {
-                    recognition.start();
-                    micBtn.classList.add('listening');
-                    subtitles.textContent = "Listening...";
-                } catch(e) {
-                    recognition.stop();
-                    micBtn.classList.remove('listening');
-                }
-            }
-
-            recognition.onresult = function(event) {
-                micBtn.classList.remove('listening');
-                const userText = event.results[0][0].transcript;
-                processUserMessage(userText);
-            };
-
-            recognition.onerror = function() {
-                micBtn.classList.remove('listening');
-                subtitles.textContent = "Voice error or permission denied.";
-            };
         }
 
         async function askGemini(text) {
@@ -157,22 +151,15 @@ HTML_TEMPLATE = """
                     body: JSON.stringify({ message: text })
                 });
                 const data = await res.json();
-                return data.response || "No response received.";
-            } catch(e) {
-                return "Connection error.";
-            }
+                return data.response || "No response";
+            } catch(e) { return "Connection error"; }
         }
 
-        function speakResponse(text) {
-            if (!('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            
-            utterance.onstart = () => { isSpeaking = true; };
-            utterance.onend = () => { isSpeaking = false; };
-            utterance.onerror = () => { isSpeaking = false; };
-
-            window.speechSynthesis.speak(utterance);
+        function generateVideo() {
+            const prompt = document.getElementById('promptInput').value;
+            if(!prompt) return alert('Please enter a prompt!');
+            document.getElementById('statusCard').style.display = 'block';
+            document.getElementById('statusText').textContent = 'Generating 3D Automation Script & Visuals for: "' + prompt + '"';
         }
 
         window.onload = init3D;
@@ -189,19 +176,16 @@ def home():
 def chat():
     data = request.json or {}
     user_msg = data.get('message', '')
-
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     payload = {
         "contents": [{"role": "user", "parts": [{"text": user_msg}]}],
-        "systemInstruction": {"parts": [{"text": "You are a friendly 3D AI assistant named Tringo AI. Give short, direct, and conversational responses."}]}
+        "systemInstruction": {"parts": [{"text": "You are Tringo AI assistant."}]}
     }
-    
     try:
         r = requests.post(url, json=payload, timeout=15).json()
         reply = r['candidates'][0]['content']['parts'][0]['text']
         return jsonify({"response": reply})
     except Exception as e:
-        return jsonify({"response": "I am having trouble connecting right now."})
+        return jsonify({"response": "Error connecting."})
 
 app = app
-                          
