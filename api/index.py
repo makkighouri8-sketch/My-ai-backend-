@@ -25,8 +25,33 @@ HTML_TEMPLATE = """
         
         /* Navigation Tabs */
         .nav-tabs { display: flex; background: #000000; border-bottom: 1px solid #222; z-index: 30; }
-        .tab-btn { flex: 1; padding: 14px 0; background: none; border: none; color: #888; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: 0.3s; }
+        .tab-btn { 
+            flex: 1; 
+            padding: 14px 0; 
+            background: none; 
+            border: none; 
+            color: #888; 
+            font-weight: bold; 
+            font-size: 0.95rem; 
+            cursor: pointer; 
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .tab-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: #888;
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: 0.3s;
+        }
         .tab-btn.active { color: #ff2a5f; border-bottom: 2px solid #ff2a5f; }
+        .tab-btn.active svg { stroke: #ff2a5f; }
 
         .section { display: none; flex: 1; width: 100%; height: 100%; position: relative; background: #000000; }
         .section.active { display: flex; flex-direction: column; }
@@ -51,8 +76,14 @@ HTML_TEMPLATE = """
 
     <!-- Header Tabs -->
     <div class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('chat')">💬 AI Chat</button>
-        <button class="tab-btn" onclick="switchTab('studio')">🎬 3D Video Studio</button>
+        <button class="tab-btn active" onclick="switchTab('chat')">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            AI Chat
+        </button>
+        <button class="tab-btn" onclick="switchTab('studio')">
+            <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            3D Video Studio
+        </button>
     </div>
 
     <!-- Section 1: AI Chat -->
