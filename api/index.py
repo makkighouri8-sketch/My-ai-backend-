@@ -25,7 +25,7 @@ HTML_TEMPLATE = """
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #000000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; }
+        html, body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #000000; color: #fff; height: 100%; width: 100%; overflow: hidden; }
         
         .app-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; background: #000000; }
 
@@ -289,27 +289,38 @@ HTML_TEMPLATE = """
 
         let scene, camera, renderer, model;
         function init3D() {
-            const container = document.getElementById('avatarContainer');
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.set(0, 1.4, 1.3); 
+            try {
+                const container = document.getElementById('avatarContainer');
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+                camera.position.set(0, 1.4, 1.3); 
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setClearColor(0x000000, 1);
-            container.appendChild(renderer.domElement);
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                renderer.setClearColor(0x000000, 1);
+                container.appendChild(renderer.domElement);
 
-            const light = new THREE.AmbientLight(0xffffff, 1.5);
-            scene.add(light);
+                const light = new THREE.AmbientLight(0xffffff, 1.5);
+                scene.add(light);
 
-            const loader = new THREE.GLTFLoader();
-            loader.load('/avatar.glb', function (gltf) {
-                model = gltf.scene;
-                scene.add(model);
+                const loader = new THREE.GLTFLoader();
+                loader.load('/avatar.glb', function (gltf) {
+                    model = gltf.scene;
+                    scene.add(model);
+                }, undefined, function () {
+                    // Fallback Shape if avatar.glb is missing
+                    const geometry = new THREE.SphereGeometry(0.3, 32, 32);
+                    const material = new THREE.MeshBasicMaterial({ color: 0xff2a5f, wireframe: true });
+                    model = new THREE.Mesh(geometry, material);
+                    model.position.set(0, 1.3, 0);
+                    scene.add(model);
+                });
+
+                window.addEventListener('resize', onWindowResize);
                 animate();
-            }, undefined, function () {});
-
-            window.addEventListener('resize', onWindowResize);
+            } catch (e) {
+                console.warn("3D Engine non-critical error handled:", e);
+            }
         }
 
         function onWindowResize() {
@@ -323,7 +334,7 @@ HTML_TEMPLATE = """
 
         function animate() {
             requestAnimationFrame(animate);
-            if (model) model.rotation.y = Math.sin(Date.now() * 0.001) * 0.02;
+            if (model) model.rotation.y += 0.01;
             if (renderer && scene && camera) renderer.render(scene, camera);
         }
 
@@ -354,23 +365,4 @@ HTML_TEMPLATE = """
         }
 
         window.onload = init3D;
-    </script>
-</body>
-</html>
-"""
-
-@app.route('/')
-def home():
-    return render_template_string(HTML_TEMPLATE)
-
-@app.route('/chat', methods=['POST'])
-def chat():
-    data = request.json or {}
-    user_msg = data.get('message', '')
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-    payload = {
-        "contents": [{"role": "user", "parts": [{"text": user_msg}]}],
-        "systemInstruction": {"parts": [{"text": "You are Tringo AI assistant."}]}
-    }
-    try:
-        r = requests.post(url, json=payloa
+    <
