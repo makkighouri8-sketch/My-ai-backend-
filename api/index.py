@@ -68,19 +68,54 @@ HTML_TEMPLATE = """
 
         /* Section 2: Video Studio Mode Switcher */
         #videoStudio { padding: 16px; background: #000000; display: flex; flex-direction: column; gap: 16px; }
-        .mode-selector { display: flex; gap: 10px; background: #0a0a0a; padding: 4px; border-radius: 10px; border: 1px solid #222; }
-        .sub-mode-btn { flex: 1; padding: 10px; border: none; background: transparent; color: #888; font-weight: bold; font-size: 0.85rem; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .sub-mode-btn.active { background: #1a1a1a; color: #fff; border: 1px solid #333; }
+        .mode-selector { display: flex; gap: 8px; background: #0a0a0a; padding: 5px; border-radius: 10px; border: 1px solid #222; }
+        .sub-mode-btn { 
+            flex: 1; 
+            padding: 10px; 
+            border: 1px solid transparent; 
+            background: transparent; 
+            color: #888; 
+            font-weight: bold; 
+            font-size: 0.85rem; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .sub-mode-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: #888;
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: 0.3s;
+        }
+        .sub-mode-btn.active { 
+            background: #2563eb; 
+            color: #ffffff; 
+            border-color: #3b82f6; 
+            box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+        }
+        .sub-mode-btn.active svg { stroke: #ffffff; }
 
         .studio-card { background: #0a0a0a; border: 1px solid #222; padding: 16px; border-radius: 12px; }
         .studio-card h3 { color: #ff2a5f; font-size: 1.05rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .studio-card h3 svg { width: 20px; height: 20px; stroke: #ff2a5f; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+        
         .studio-input { width: 100%; height: 80px; background: #000000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 12px; outline: none; font-size: 0.9rem; }
         
         /* File Upload Box */
-        .upload-box { border: 2px dashed #333; padding: 20px; text-align: center; border-radius: 8px; background: #000; cursor: pointer; margin-bottom: 12px; }
-        .upload-box p { color: #888; font-size: 0.85rem; margin-top: 5px; }
+        .upload-box { border: 2px dashed #333; padding: 20px; text-align: center; border-radius: 8px; background: #000000; cursor: pointer; margin-bottom: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+        .upload-box svg { width: 24px; height: 24px; stroke: #2563eb; fill: none; stroke-width: 1.8; }
+        .upload-box span { color: #fff; font-size: 0.9rem; font-weight: 500; }
+        .upload-box p { color: #888; font-size: 0.8rem; }
         
-        .gen-btn { width: 100%; padding: 12px; background: #2563eb; border: none; color: #ffffff; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+        .gen-btn { width: 100%; padding: 12px; background: #2563eb; border: none; color: #ffffff; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.95rem; box-shadow: 0 0 10px rgba(37, 99, 235, 0.3); }
         .gen-btn:active { background: #1d4ed8; }
     </style>
 </head>
@@ -115,22 +150,35 @@ HTML_TEMPLATE = """
         <div id="videoStudio">
             <!-- Studio Mode Switcher -->
             <div class="mode-selector">
-                <button class="sub-mode-btn active" id="textModeBtn" onclick="switchStudioMode('text')">✍️ Prompt to 3D</button>
-                <button class="sub-mode-btn" id="picModeBtn" onclick="switchStudioMode('pic')">🖼️ Pic to Animation</button>
+                <button class="sub-mode-btn active" id="textModeBtn" onclick="switchStudioMode('text')">
+                    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    Prompt to 3D
+                </button>
+                <button class="sub-mode-btn" id="picModeBtn" onclick="switchStudioMode('pic')">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    Pic to Animation
+                </button>
             </div>
 
             <!-- Option A: Text Prompt to 3D -->
             <div class="studio-card" id="textPromptCard">
-                <h3>🎥 Generate from Text Prompt</h3>
+                <h3>
+                    <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                    Generate 3D Animation Video
+                </h3>
                 <textarea class="studio-input" id="promptInput" placeholder="Describe your 3D animation scene (e.g., A funny 3D character talking about finance in space)..."></textarea>
                 <button class="gen-btn" onclick="generateVideo('text')">Render 3D Video</button>
             </div>
 
             <!-- Option B: Pic to Animation -->
             <div class="studio-card" id="picPromptCard" style="display:none;">
-                <h3>🖼️ Animate Image to 3D</h3>
+                <h3>
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    Animate Image to 3D
+                </h3>
                 <div class="upload-box" onclick="document.getElementById('imageUpload').click()">
-                    <span>📁 Tap to Upload Image</span>
+                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <span>Tap to Upload Image</span>
                     <p id="fileName">Select JPG/PNG character or photo</p>
                     <input type="file" id="imageUpload" accept="image/*" style="display:none;" onchange="updateFileName(this)">
                 </div>
@@ -279,4 +327,3 @@ def chat():
         return jsonify({"response": "Error connecting."})
 
 app = app
-    
