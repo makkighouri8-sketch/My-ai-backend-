@@ -109,12 +109,53 @@ HTML_TEMPLATE = """
         
         .studio-input { width: 100%; height: 80px; background: #000000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 12px; outline: none; font-size: 0.9rem; }
         
-        /* File Upload Box */
-        .upload-box { border: 2px dashed #333; padding: 20px; text-align: center; border-radius: 8px; background: #000000; cursor: pointer; margin-bottom: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+        /* File Upload & Preview Box */
+        .upload-box { 
+            position: relative;
+            border: 2px dashed #333; 
+            padding: 16px; 
+            text-align: center; 
+            border-radius: 10px; 
+            background: #000000; 
+            cursor: pointer; 
+            margin-bottom: 12px; 
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            overflow: hidden;
+        }
         .upload-box svg { width: 24px; height: 24px; stroke: #2563eb; fill: none; stroke-width: 1.8; }
         .upload-box span { color: #fff; font-size: 0.9rem; font-weight: 500; }
         .upload-box p { color: #888; font-size: 0.8rem; }
         
+        /* Image Preview Style */
+        .preview-img {
+            width: 100%;
+            max-height: 180px;
+            object-fit: contain;
+            border-radius: 6px;
+            display: none;
+        }
+        .remove-img-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 42, 95, 0.9);
+            color: white;
+            border: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 10;
+        }
+
         .gen-btn { width: 100%; padding: 12px; background: #2563eb; border: none; color: #ffffff; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.95rem; box-shadow: 0 0 10px rgba(37, 99, 235, 0.3); }
         .gen-btn:active { background: #1d4ed8; }
     </style>
@@ -176,11 +217,17 @@ HTML_TEMPLATE = """
                     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                     Animate Image to 3D
                 </h3>
-                <div class="upload-box" onclick="document.getElementById('imageUpload').click()">
-                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    <span>Tap to Upload Image</span>
-                    <p id="fileName">Select JPG/PNG character or photo</p>
-                    <input type="file" id="imageUpload" accept="image/*" style="display:none;" onchange="updateFileName(this)">
+                <div class="upload-box" id="uploadBox" onclick="document.getElementById('imageUpload').click()">
+                    <button class="remove-img-btn" id="removeImgBtn" onclick="clearImage(event)">✕</button>
+                    
+                    <div id="uploadPlaceholder" style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <span>Tap to Upload Image</span>
+                        <p id="fileName">Select JPG/PNG character or photo</p>
+                    </div>
+
+                    <img id="imagePreview" class="preview-img" alt="Uploaded Preview">
+                    <input type="file" id="imageUpload" accept="image/*" style="display:none;" onchange="previewSelectedImage(this)">
                 </div>
                 <textarea class="studio-input" id="picMotionInput" placeholder="Optional: Describe how it should move/speak..."></textarea>
                 <button class="gen-btn" onclick="generateVideo('pic')">Animate Image</button>
@@ -224,10 +271,31 @@ HTML_TEMPLATE = """
             }
         }
 
-        function updateFileName(input) {
-            if(input.files && input.files[0]) {
-                document.getElementById('fileName').textContent = "Selected: " + input.files[0].name;
+        function previewSelectedImage(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgPreview = document.getElementById('imagePreview');
+                    imgPreview.src = e.target.result;
+                    imgPreview.style.display = 'block';
+
+                    document.getElementById('uploadPlaceholder').style.display = 'none';
+                    document.getElementById('removeImgBtn').style.display = 'block';
+                    document.getElementById('uploadBox').style.borderColor = '#2563eb';
+                }
+                reader.readAsDataURL(file);
             }
+        }
+
+        function clearImage(e) {
+            e.stopPropagation(); // Prevents triggering click on file input
+            document.getElementById('imageUpload').value = '';
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('uploadPlaceholder').style.display = 'flex';
+            document.getElementById('removeImgBtn').style.display = 'none';
+            document.getElementById('uploadBox').style.borderColor = '#333';
         }
 
         function init3D() {
@@ -327,3 +395,4 @@ def chat():
         return jsonify({"response": "Error connecting."})
 
 app = app
+
