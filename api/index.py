@@ -107,9 +107,9 @@ HTML_TEMPLATE = """
         .studio-card h3 { color: #ff2a5f; font-size: 1.05rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
         .studio-card h3 svg { width: 20px; height: 20px; stroke: #ff2a5f; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
         
-        .studio-input { width: 100%; height: 80px; background: #000000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 12px; outline: none; font-size: 0.9rem; }
+        .studio-input { width: 100%; height: 90px; background: #000000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 12px; outline: none; font-size: 0.9rem; }
         
-        /* File Upload & Preview Box */
+        /* File Upload Box */
         .upload-box { 
             position: relative;
             border: 2px dashed #333; 
@@ -211,7 +211,7 @@ HTML_TEMPLATE = """
                 <button class="gen-btn" onclick="generateVideo('text')">Render 3D Video</button>
             </div>
 
-            <!-- Option B: Pic to Animation -->
+            <!-- Option B: Pic to Animation (Clean UI - Pure Image Box Only) -->
             <div class="studio-card" id="picPromptCard" style="display:none;">
                 <h3>
                     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
@@ -229,7 +229,6 @@ HTML_TEMPLATE = """
                     <img id="imagePreview" class="preview-img" alt="Uploaded Preview">
                     <input type="file" id="imageUpload" accept="image/*" style="display:none;" onchange="previewSelectedImage(this)">
                 </div>
-                <textarea class="studio-input" id="picMotionInput" placeholder="Optional: Describe how it should move/speak..."></textarea>
                 <button class="gen-btn" onclick="generateVideo('pic')">Animate Image</button>
             </div>
 
@@ -289,7 +288,7 @@ HTML_TEMPLATE = """
         }
 
         function clearImage(e) {
-            e.stopPropagation(); // Prevents triggering click on file input
+            e.stopPropagation();
             document.getElementById('imageUpload').value = '';
             document.getElementById('imagePreview').src = '';
             document.getElementById('imagePreview').style.display = 'none';
@@ -395,4 +394,3 @@ def chat():
         return jsonify({"response": "Error connecting."})
 
 app = app
-
