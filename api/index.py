@@ -16,19 +16,21 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Tringo AI</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: sans-serif; background: #000000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        html, body { font-family: sans-serif; background: #000000; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
         /* Navigation Tabs */
         .nav-tabs { display: flex; background: #000000; border-bottom: 1px solid #222; z-index: 30; }
         .tab-btn { 
             flex: 1; 
             padding: 14px 0; 
-            background: none; 
+            background: #000000; 
             border: none; 
             color: #888; 
             font-weight: bold; 
@@ -69,7 +71,8 @@ HTML_TEMPLATE = """
         .studio-card { background: #0a0a0a; border: 1px solid #222; padding: 15px; border-radius: 12px; }
         .studio-card h3 { color: #ff2a5f; font-size: 1.1rem; margin-bottom: 10px; }
         .studio-input { width: 100%; height: 80px; background: #000000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 10px; outline: none; }
-        .gen-btn { width: 100%; padding: 12px; background: #ff2a5f; border: none; color: #fff; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .gen-btn { width: 100%; padding: 12px; background: #2563eb; border: none; color: #ffffff; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .gen-btn:active { background: #1d4ed8; }
     </style>
 </head>
 <body>
@@ -220,3 +223,4 @@ def chat():
         return jsonify({"response": "Error connecting."})
 
 app = app
+                        
