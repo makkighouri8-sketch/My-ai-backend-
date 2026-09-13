@@ -55,7 +55,7 @@ HTML_TEMPLATE = """
         .tab-btn.active { color: #ff2a5f; border-bottom: 2px solid #ff2a5f; }
         .tab-btn.active svg { stroke: #ff2a5f; }
 
-        .section { display: none; flex: 1; width: 100%; height: 100%; position: relative; background: #000000; }
+        .section { display: none; flex: 1; width: 100%; height: 100%; position: relative; background: #000000; overflow-y: auto; }
         .section.active { display: flex; flex-direction: column; }
 
         /* Section 1: Chat Mode */
@@ -66,12 +66,21 @@ HTML_TEMPLATE = """
         .send-btn { padding: 12px 18px; border-radius: 25px; border: none; background: #ff2a5f; color: #fff; font-weight: bold; cursor: pointer; flex-shrink: 0; }
         .mic-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: #22c55e; color: #fff; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 
-        /* Section 2: Video Generator Mode */
-        #videoStudio { padding: 20px; background: #000000; display: flex; flex-direction: column; gap: 15px; }
-        .studio-card { background: #0a0a0a; border: 1px solid #222; padding: 15px; border-radius: 12px; }
-        .studio-card h3 { color: #ff2a5f; font-size: 1.1rem; margin-bottom: 10px; }
-        .studio-input { width: 100%; height: 80px; background: #000000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 10px; outline: none; }
-        .gen-btn { width: 100%; padding: 12px; background: #2563eb; border: none; color: #ffffff; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        /* Section 2: Video Studio Mode Switcher */
+        #videoStudio { padding: 16px; background: #000000; display: flex; flex-direction: column; gap: 16px; }
+        .mode-selector { display: flex; gap: 10px; background: #0a0a0a; padding: 4px; border-radius: 10px; border: 1px solid #222; }
+        .sub-mode-btn { flex: 1; padding: 10px; border: none; background: transparent; color: #888; font-weight: bold; font-size: 0.85rem; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .sub-mode-btn.active { background: #1a1a1a; color: #fff; border: 1px solid #333; }
+
+        .studio-card { background: #0a0a0a; border: 1px solid #222; padding: 16px; border-radius: 12px; }
+        .studio-card h3 { color: #ff2a5f; font-size: 1.05rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .studio-input { width: 100%; height: 80px; background: #000000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 12px; outline: none; font-size: 0.9rem; }
+        
+        /* File Upload Box */
+        .upload-box { border: 2px dashed #333; padding: 20px; text-align: center; border-radius: 8px; background: #000; cursor: pointer; margin-bottom: 12px; }
+        .upload-box p { color: #888; font-size: 0.85rem; margin-top: 5px; }
+        
+        .gen-btn { width: 100%; padding: 12px; background: #2563eb; border: none; color: #ffffff; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
         .gen-btn:active { background: #1d4ed8; }
     </style>
 </head>
@@ -101,17 +110,37 @@ HTML_TEMPLATE = """
         </div>
     </div>
 
-    <!-- Section 2: AI Video Generator -->
+    <!-- Section 2: AI Video Generator Studio -->
     <div id="studioSection" class="section">
         <div id="videoStudio">
-            <div class="studio-card">
-                <h3>🎥 Generate 3D Animation Video</h3>
-                <textarea class="studio-input" id="promptInput" placeholder="Describe your 3D animation scene (e.g., A funny 3D character talking about finance in space)..."></textarea>
-                <button class="gen-btn" onclick="generateVideo()">Render 3D Video</button>
+            <!-- Studio Mode Switcher -->
+            <div class="mode-selector">
+                <button class="sub-mode-btn active" id="textModeBtn" onclick="switchStudioMode('text')">✍️ Prompt to 3D</button>
+                <button class="sub-mode-btn" id="picModeBtn" onclick="switchStudioMode('pic')">🖼️ Pic to Animation</button>
             </div>
+
+            <!-- Option A: Text Prompt to 3D -->
+            <div class="studio-card" id="textPromptCard">
+                <h3>🎥 Generate from Text Prompt</h3>
+                <textarea class="studio-input" id="promptInput" placeholder="Describe your 3D animation scene (e.g., A funny 3D character talking about finance in space)..."></textarea>
+                <button class="gen-btn" onclick="generateVideo('text')">Render 3D Video</button>
+            </div>
+
+            <!-- Option B: Pic to Animation -->
+            <div class="studio-card" id="picPromptCard" style="display:none;">
+                <h3>🖼️ Animate Image to 3D</h3>
+                <div class="upload-box" onclick="document.getElementById('imageUpload').click()">
+                    <span>📁 Tap to Upload Image</span>
+                    <p id="fileName">Select JPG/PNG character or photo</p>
+                    <input type="file" id="imageUpload" accept="image/*" style="display:none;" onchange="updateFileName(this)">
+                </div>
+                <textarea class="studio-input" id="picMotionInput" placeholder="Optional: Describe how it should move/speak..."></textarea>
+                <button class="gen-btn" onclick="generateVideo('pic')">Animate Image</button>
+            </div>
+
             <div class="studio-card" id="statusCard" style="display:none;">
                 <h3>Status</h3>
-                <p id="statusText">Processing prompt and creating 3D scene...</p>
+                <p id="statusText">Processing...</p>
             </div>
         </div>
     </div>
@@ -129,6 +158,27 @@ HTML_TEMPLATE = """
             } else {
                 document.querySelectorAll('.tab-btn')[1].classList.add('active');
                 document.getElementById('studioSection').classList.add('active');
+            }
+        }
+
+        function switchStudioMode(mode) {
+            document.getElementById('textModeBtn').classList.remove('active');
+            document.getElementById('picModeBtn').classList.remove('active');
+
+            if (mode === 'text') {
+                document.getElementById('textModeBtn').classList.add('active');
+                document.getElementById('textPromptCard').style.display = 'block';
+                document.getElementById('picPromptCard').style.display = 'none';
+            } else {
+                document.getElementById('picModeBtn').classList.add('active');
+                document.getElementById('textPromptCard').style.display = 'none';
+                document.getElementById('picPromptCard').style.display = 'block';
+            }
+        }
+
+        function updateFileName(input) {
+            if(input.files && input.files[0]) {
+                document.getElementById('fileName').textContent = "Selected: " + input.files[0].name;
             }
         }
 
@@ -189,11 +239,17 @@ HTML_TEMPLATE = """
             } catch(e) { return "Connection error"; }
         }
 
-        function generateVideo() {
-            const prompt = document.getElementById('promptInput').value;
-            if(!prompt) return alert('Please enter a prompt!');
+        function generateVideo(type) {
             document.getElementById('statusCard').style.display = 'block';
-            document.getElementById('statusText').textContent = 'Generating 3D Automation Script & Visuals for: "' + prompt + '"';
+            if (type === 'text') {
+                const prompt = document.getElementById('promptInput').value;
+                if(!prompt) return alert('Please enter a prompt!');
+                document.getElementById('statusText').textContent = 'Rendering Text Prompt to 3D Scene: "' + prompt + '"';
+            } else {
+                const file = document.getElementById('imageUpload').files[0];
+                if(!file) return alert('Please select an image first!');
+                document.getElementById('statusText').textContent = 'Animating image (' + file.name + ') into 3D Video...';
+            }
         }
 
         window.onload = init3D;
@@ -223,4 +279,4 @@ def chat():
         return jsonify({"response": "Error connecting."})
 
 app = app
-                        
+    
