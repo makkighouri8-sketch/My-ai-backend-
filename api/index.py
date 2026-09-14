@@ -1,4 +1,4 @@
-# Updated layout fixes for Tringo AI Studio
+# Fixed visibility logic for greeting box and chat bar
 from flask import Flask, request, jsonify, render_template_string
 import os
 import requests
@@ -22,7 +22,7 @@ HTML_TEMPLATE = """
 
         .app-container { display: flex; flex-direction: column; width: 100vw; height: 100vh; background: #050505; }
 
-        /* Navigation Bar - Separate Capsules */
+        /* Navigation Bar */
         .top-nav { 
             display: flex; 
             align-items: center; 
@@ -57,8 +57,8 @@ HTML_TEMPLATE = """
         .panel { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         .panel.active { display: flex; flex-direction: column; }
 
-        /* Panel 1: AI Chat Dashboard */
-        #chatPanel { position: relative; background: #050505; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        /* AI Chat Panel */
+        #chatPanel { position: relative; background: #050505; align-items: center; justify-content: center; }
         
         .canvas-container {
             position: absolute;
@@ -87,8 +87,8 @@ HTML_TEMPLATE = """
         .chat-bar input:focus { border-color: #d037fd; }
         .chat-bar button { padding: 0 20px; height: 48px; background: #d037fd; border: none; border-radius: 24px; color: #fff; font-weight: bold; cursor: pointer; }
 
-        /* Panel 2: Studio Dashboard */
-        #studioPanel { overflow-y: auto; padding: 16px; background: #050505; }
+        /* Studio Panel */
+        #studioPanel { overflow-y: auto; padding: 16px; background: #050505; z-index: 10; }
         .studio-box { max-width: 500px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 16px; }
         
         .sub-nav { display: flex; background: #121212; padding: 4px; border-radius: 20px; border: 1px solid #222; }
@@ -126,15 +126,14 @@ HTML_TEMPLATE = """
                     <canvas id="neonCanvas" width="300" height="300"></canvas>
                 </div>
                 
-                <!-- Greeting only on AI Chat -->
                 <div class="greeting-box" id="greetingContainer">
-                    <div class="greeting-text" id="userNameLabel">Hi Jamshed,</div>
+                    <div class="greeting-text">Hi Jamshed,</div>
                     <div class="sub-greeting">Ask or speak anything to Tringo AI!</div>
                 </div>
 
                 <div class="subtitle-box" id="subBox" style="display:none;"></div>
 
-                <div class="chat-bar">
+                <div class="chat-bar" id="mainChatBar">
                     <input type="text" id="msgInput" placeholder="Message Tringo AI..." onkeypress="onKey(event)">
                     <button onclick="sendChat()">Send</button>
                 </div>
@@ -227,17 +226,21 @@ HTML_TEMPLATE = """
         let uploadedImgBase64 = null;
 
         function changeTab(tab) {
-            document.getElementById('tabChat').classList.remove('active');
-            document.getElementById('tabStudio').classList.remove('active');
-            document.getElementById('chatPanel').classList.remove('active');
-            document.getElementById('studioPanel').classList.remove('active');
+            const chatPanel = document.getElementById('chatPanel');
+            const studioPanel = document.getElementById('studioPanel');
+            const tabChat = document.getElementById('tabChat');
+            const tabStudio = document.getElementById('tabStudio');
 
             if (tab === 'chat') {
-                document.getElementById('tabChat').classList.add('active');
-                document.getElementById('chatPanel').classList.add('active');
+                tabChat.classList.add('active');
+                tabStudio.classList.remove('active');
+                chatPanel.style.display = 'flex';
+                studioPanel.style.display = 'none';
             } else {
-                document.getElementById('tabStudio').classList.add('active');
-                document.getElementById('studioPanel').classList.add('active');
+                tabStudio.classList.add('active');
+                tabChat.classList.remove('active');
+                chatPanel.style.display = 'none';
+                studioPanel.style.display = 'block';
             }
         }
 
