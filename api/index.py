@@ -21,13 +21,38 @@ HTML_TEMPLATE = """
 
         .app-container { display: flex; flex-direction: column; width: 100vw; height: 100vh; background: #050505; }
 
-        /* Top Bar */
-        .top-nav { display: flex; height: 55px; background: #111111; border-bottom: 1px solid #222; flex-shrink: 0; }
-        .nav-btn { flex: 1; background: transparent; border: none; color: #777777; font-weight: bold; font-size: 0.95rem; cursor: pointer; border-bottom: 3px solid transparent; }
-        .nav-btn.active { color: #d037fd; border-bottom: 3px solid #d037fd; background: rgba(208, 55, 253, 0.08); }
+        /* Rounded Separate Top Navigation Buttons */
+        .top-nav { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 10px 16px; 
+            gap: 12px; 
+            background: #000000; 
+            flex-shrink: 0; 
+        }
+        .nav-btn { 
+            flex: 1; 
+            padding: 10px 16px; 
+            background: #181818; 
+            border: 1px solid #2a2a2a; 
+            border-radius: 24px; 
+            color: #888888; 
+            font-weight: bold; 
+            font-size: 0.9rem; 
+            cursor: pointer; 
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .nav-btn.active { 
+            color: #ffffff; 
+            background: #222222; 
+            border-color: #d037fd; 
+            box-shadow: 0 0 10px rgba(208, 55, 253, 0.25);
+        }
 
         /* Content Area */
-        .main-content { flex: 1; position: relative; width: 100%; height: calc(100vh - 55px); overflow: hidden; }
+        .main-content { flex: 1; position: relative; width: 100%; height: calc(100vh - 65px); overflow: hidden; }
         .panel { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         .panel.active { display: flex; flex-direction: column; }
 
@@ -87,7 +112,7 @@ HTML_TEMPLATE = """
 <body>
 
     <div class="app-container">
-        <!-- Navigation -->
+        <!-- Separate Rounded Navigation Buttons -->
         <div class="top-nav">
             <button class="nav-btn active" id="tabChat" onclick="changeTab('chat')">AI Chat</button>
             <button class="nav-btn" id="tabStudio" onclick="changeTab('studio')">3D Video Studio</button>
@@ -97,7 +122,6 @@ HTML_TEMPLATE = """
             <!-- AI Chat Panel -->
             <div id="chatPanel" class="panel active">
                 
-                <!-- Pure HTML Canvas Neon Vortex Animation -->
                 <div class="canvas-container">
                     <canvas id="neonCanvas" width="300" height="300"></canvas>
                 </div>
@@ -158,7 +182,6 @@ HTML_TEMPLATE = """
     </div>
 
     <script>
-        // Exact Neon Spiral Canvas Renderer
         const canvas = document.getElementById('neonCanvas');
         const ctx = canvas.getContext('2d');
         let angle = 0;
@@ -421,4 +444,3 @@ def generate_3d():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
