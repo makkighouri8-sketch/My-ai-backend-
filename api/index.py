@@ -70,14 +70,12 @@ HTML_TEMPLATE = """
 <body>
 
     <div class="app-container">
-        <!-- Navigation -->
         <div class="top-nav">
             <button class="nav-btn active" id="tabChat" onclick="changeTab('chat')">AI Chat</button>
             <button class="nav-btn" id="tabStudio" onclick="changeTab('studio')">3D Video Studio</button>
         </div>
 
         <div class="main-content">
-            <!-- AI Chat Panel -->
             <div id="chatPanel" class="panel active">
                 <canvas id="avatarCanvas"></canvas>
                 
@@ -94,7 +92,6 @@ HTML_TEMPLATE = """
                 </div>
             </div>
 
-            <!-- Studio Panel -->
             <div id="studioPanel" class="panel">
                 <div class="studio-box">
                     <div class="sub-nav">
@@ -102,14 +99,12 @@ HTML_TEMPLATE = """
                         <button class="sub-btn" id="subPic" onclick="changeStudioMode('pic')">Pic to Animation</button>
                     </div>
 
-                    <!-- Text Mode -->
                     <div class="card" id="textCard">
                         <h3>Generate 3D Animation</h3>
                         <textarea id="textPromptInput" placeholder="Describe 3D scene..."></textarea>
                         <button class="btn-submit" onclick="startGeneration('text')">Render 3D Video</button>
                     </div>
 
-                    <!-- Pic Mode -->
                     <div class="card" id="picCard" style="display:none;">
                         <h3>Animate Image to 3D</h3>
                         <div class="upload-area" id="upArea" onclick="document.getElementById('fileInput').click()">
@@ -124,7 +119,6 @@ HTML_TEMPLATE = """
                         <button class="btn-submit" onclick="startGeneration('pic')">Animate Image</button>
                     </div>
 
-                    <!-- Status Display -->
                     <div class="card" id="statusCard" style="display:none;">
                         <h3>Status</h3>
                         <div class="loader-ring" id="loaderRing" style="display:none;"></div>
@@ -139,7 +133,6 @@ HTML_TEMPLATE = """
     <script>
         let uploadedImgBase64 = null;
 
-        // User Login Greeting Handler
         function setUserGreeting(nameOrEmail) {
             let firstName = "User";
             if (nameOrEmail) {
@@ -150,7 +143,6 @@ HTML_TEMPLATE = """
             document.getElementById('userNameLabel').textContent = "Hi " + firstName + ",";
         }
 
-        // Example trigger (Pass dynamic username or email here)
         setUserGreeting("Jamshed");
 
         function changeTab(tab) {
@@ -252,7 +244,7 @@ HTML_TEMPLATE = """
             }
         }
 
-        /* Tringo AI Icon Matching Rotating Spiral Galaxy Animation */
+        /* Exact Tringo AI GIF Neon Vortex Animation */
         const canvas = document.getElementById('avatarCanvas');
         const ctx = canvas.getContext('2d');
         let rotationAngle = 0;
@@ -262,52 +254,50 @@ HTML_TEMPLATE = """
             canvas.height = canvas.parentElement.clientHeight;
         }
 
-        function drawTringoSpiralIcon() {
+        function drawTringoGifVortex() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             const centerX = canvas.width / 2;
             const centerY = (canvas.height / 2) - 60; 
             
-            rotationAngle += 0.03; // Rotation speed
+            rotationAngle += 0.04;
 
             ctx.save();
             ctx.translate(centerX, centerY);
             ctx.rotate(rotationAngle);
 
-            const numArms = 5;
-            const particlesPerArm = 18;
+            const arms = 3;
+            ctx.lineWidth = 12;
+            ctx.lineCap = 'round';
 
-            for (let arm = 0; arm < numArms; arm++) {
-                const baseAngle = (arm * Math.PI * 2) / numArms;
+            for (let i = 0; i < arms; i++) {
+                ctx.save();
+                ctx.rotate((i * Math.PI * 2) / arms);
 
-                for (let i = 0; i < particlesPerArm; i++) {
-                    const distance = i * 4.5 + 8;
-                    const spiralAngle = baseAngle + (i * 0.15);
+                const grad = ctx.createRadialGradient(0, 0, 10, 0, 0, 80);
+                grad.addColorStop(0, '#ff1ac6');
+                grad.addColorStop(0.6, '#a100ff');
+                grad.addColorStop(1, 'rgba(161, 0, 255, 0)');
 
-                    const x = Math.cos(spiralAngle) * distance;
-                    const y = Math.sin(spiralAngle) * distance;
+                ctx.strokeStyle = grad;
+                ctx.shadowColor = '#d037fd';
+                ctx.shadowBlur = 18;
 
-                    const radius = 2 + (i * 0.35);
+                ctx.beginPath();
+                ctx.moveTo(15, 0);
+                ctx.bezierCurveTo(40, -10, 70, 30, 85, 75);
+                ctx.stroke();
 
-                    // Purple to Magenta Neon Colors matching Tringo Icon
-                    const hue = 270 + (i * 4); 
-                    ctx.fillStyle = `hsl(${hue}, 90%, 65%)`;
-                    ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
-                    ctx.shadowBlur = 10;
-
-                    ctx.beginPath();
-                    ctx.arc(x, y, radius, 0, Math.PI * 2);
-                    ctx.fill();
-                }
+                ctx.restore();
             }
 
             ctx.restore();
-            requestAnimationFrame(drawTringoSpiralIcon);
+            requestAnimationFrame(drawTringoGifVortex);
         }
 
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
-        drawTringoSpiralIcon();
+        drawTringoGifVortex();
 
         async function sendChat() {
             const inp = document.getElementById('msgInput');
@@ -417,3 +407,4 @@ def generate_3d():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
