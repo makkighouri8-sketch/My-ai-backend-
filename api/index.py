@@ -1,3 +1,4 @@
+# Updated layout fixes for Tringo AI Studio
 from flask import Flask, request, jsonify, render_template_string
 import os
 import requests
@@ -21,7 +22,7 @@ HTML_TEMPLATE = """
 
         .app-container { display: flex; flex-direction: column; width: 100vw; height: 100vh; background: #050505; }
 
-        /* Rounded Separate Top Navigation Buttons */
+        /* Navigation Bar - Separate Capsules */
         .top-nav { 
             display: flex; 
             align-items: center; 
@@ -56,10 +57,9 @@ HTML_TEMPLATE = """
         .panel { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         .panel.active { display: flex; flex-direction: column; }
 
-        /* Panel 1: AI Chat */
+        /* Panel 1: AI Chat Dashboard */
         #chatPanel { position: relative; background: #050505; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* Pure Canvas Animation Container */
         .canvas-container {
             position: absolute;
             top: 38%;
@@ -87,7 +87,7 @@ HTML_TEMPLATE = """
         .chat-bar input:focus { border-color: #d037fd; }
         .chat-bar button { padding: 0 20px; height: 48px; background: #d037fd; border: none; border-radius: 24px; color: #fff; font-weight: bold; cursor: pointer; }
 
-        /* Panel 2: Studio */
+        /* Panel 2: Studio Dashboard */
         #studioPanel { overflow-y: auto; padding: 16px; background: #050505; }
         .studio-box { max-width: 500px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 16px; }
         
@@ -112,7 +112,7 @@ HTML_TEMPLATE = """
 <body>
 
     <div class="app-container">
-        <!-- Separate Rounded Navigation Buttons -->
+        <!-- Navigation Bar -->
         <div class="top-nav">
             <button class="nav-btn active" id="tabChat" onclick="changeTab('chat')">AI Chat</button>
             <button class="nav-btn" id="tabStudio" onclick="changeTab('studio')">3D Video Studio</button>
@@ -126,6 +126,7 @@ HTML_TEMPLATE = """
                     <canvas id="neonCanvas" width="300" height="300"></canvas>
                 </div>
                 
+                <!-- Greeting only on AI Chat -->
                 <div class="greeting-box" id="greetingContainer">
                     <div class="greeting-text" id="userNameLabel">Hi Jamshed,</div>
                     <div class="sub-greeting">Ask or speak anything to Tringo AI!</div>
@@ -224,18 +225,6 @@ HTML_TEMPLATE = """
         drawVortex();
 
         let uploadedImgBase64 = null;
-
-        function setUserGreeting(nameOrEmail) {
-            let firstName = "User";
-            if (nameOrEmail) {
-                let clean = nameOrEmail.split('@')[0];
-                clean = clean.split('.')[0].split('_')[0];
-                firstName = clean.charAt(0).toUpperCase() + clean.slice(1);
-            }
-            document.getElementById('userNameLabel').textContent = "Hi " + firstName + ",";
-        }
-
-        setUserGreeting("Jamshed");
 
         function changeTab(tab) {
             document.getElementById('tabChat').classList.remove('active');
@@ -444,3 +433,4 @@ def generate_3d():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
