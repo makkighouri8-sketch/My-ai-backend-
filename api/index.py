@@ -34,30 +34,22 @@ HTML_TEMPLATE = """
         /* Panel 1: AI Chat */
         #chatPanel { position: relative; background: #050505; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* Direct Original Rotating GIF Holder */
-        .gif-container {
+        /* Pure Canvas Animation Container */
+        .canvas-container {
             position: absolute;
             top: 38%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 220px;
-            height: 220px;
+            width: 250px;
+            height: 250px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .gif-container img {
+        #neonCanvas {
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            animation: rotateGif 6s linear infinite;
-            filter: drop-shadow(0 0 15px rgba(208, 55, 253, 0.4));
-        }
-
-        @keyframes rotateGif {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         .greeting-box { position: absolute; top: 62%; left: 0; width: 100%; text-align: center; z-index: 5; }
@@ -105,9 +97,9 @@ HTML_TEMPLATE = """
             <!-- AI Chat Panel -->
             <div id="chatPanel" class="panel active">
                 
-                <!-- Exact GIF Direct Live Fitting -->
-                <div class="gif-container">
-                    <img src="https://i.ibb.co/L84852d/tringo-vortex.gif" alt="Tringo AI Animation">
+                <!-- Pure HTML Canvas Neon Vortex Animation -->
+                <div class="canvas-container">
+                    <canvas id="neonCanvas" width="300" height="300"></canvas>
                 </div>
                 
                 <div class="greeting-box" id="greetingContainer">
@@ -166,6 +158,48 @@ HTML_TEMPLATE = """
     </div>
 
     <script>
+        // Exact Neon Spiral Canvas Renderer
+        const canvas = document.getElementById('neonCanvas');
+        const ctx = canvas.getContext('2d');
+        let angle = 0;
+
+        function drawVortex() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const numArms = 3;
+
+            for (let i = 0; i < numArms; i++) {
+                const armAngle = angle + (i * (Math.PI * 2 / numArms));
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(armAngle);
+
+                ctx.beginPath();
+                ctx.moveTo(12, 0);
+                ctx.bezierCurveTo(35, 45, 85, 40, 95, 0);
+                ctx.bezierCurveTo(75, -25, 30, -15, 12, 0);
+
+                const grad = ctx.createLinearGradient(0, 0, 90, 0);
+                grad.addColorStop(0, '#e033ff');
+                grad.addColorStop(0.5, '#bd10e0');
+                grad.addColorStop(1, '#7000ff');
+
+                ctx.fillStyle = grad;
+                ctx.shadowColor = '#d037fd';
+                ctx.shadowBlur = 22;
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            angle += 0.035;
+            requestAnimationFrame(drawVortex);
+        }
+
+        drawVortex();
+
         let uploadedImgBase64 = null;
 
         function setUserGreeting(nameOrEmail) {
