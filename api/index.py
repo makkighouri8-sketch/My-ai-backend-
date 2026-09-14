@@ -1,4 +1,3 @@
-# Live Voice-to-Voice Chat + 3D Video Studio
 from flask import Flask, request, jsonify, render_template_string
 import os
 import requests
@@ -52,7 +51,6 @@ HTML_TEMPLATE = """
             box-shadow: 0 0 10px rgba(208, 55, 253, 0.25);
         }
 
-        /* Content Areas */
         .main-content { flex: 1; position: relative; width: 100%; height: calc(100vh - 65px); overflow: hidden; }
         .panel { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         .panel.active { display: flex; flex-direction: column; }
@@ -60,7 +58,6 @@ HTML_TEMPLATE = """
         /* Live Voice Chat Panel */
         #chatPanel { position: relative; background: #050505; align-items: center; justify-content: center; }
 
-        /* Glowing Mic / Voice Orb Container */
         .voice-orb-container {
             display: flex;
             flex-direction: column;
@@ -70,8 +67,8 @@ HTML_TEMPLATE = """
         }
 
         .voice-orb {
-            width: 140px;
-            height: 140px;
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
             background: radial-gradient(circle, #d037fd 0%, #7000ff 100%);
             display: flex;
@@ -80,7 +77,6 @@ HTML_TEMPLATE = """
             box-shadow: 0 0 35px rgba(208, 55, 253, 0.4);
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
         }
 
         .voice-orb svg {
@@ -89,7 +85,6 @@ HTML_TEMPLATE = """
             fill: #ffffff;
         }
 
-        /* Listening Animation Pulse */
         .voice-orb.listening {
             animation: pulse-ring 1.5s infinite;
             background: radial-gradient(circle, #2563eb 0%, #00d4ff 100%);
@@ -114,13 +109,12 @@ HTML_TEMPLATE = """
         }
 
         .status-tag {
-            margin-top: 20px;
+            margin-top: 18px;
             font-size: 0.95rem;
             color: #aaaaaa;
             font-weight: 500;
         }
 
-        /* Live Subtitles Box */
         .live-transcript-box {
             width: 90%;
             max-width: 450px;
@@ -183,11 +177,11 @@ HTML_TEMPLATE = """
                             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
                         </svg>
                     </div>
-                    <div class="status-tag" id="statusTag">Tap icon to speak live</div>
+                    <div class="status-tag" id="statusTag">Tap mic button to talk live</div>
                 </div>
 
                 <div class="live-transcript-box" id="transcriptBox">
-                    Listening or Text responses will appear here...
+                    Tap the mic button and speak...
                 </div>
 
                 <div class="chat-bar">
@@ -239,7 +233,6 @@ HTML_TEMPLATE = """
     </div>
 
     <script>
-        // Live Voice & Speech Synthesis Setup
         let isListening = false;
         let recognition = null;
         let synthesis = window.speechSynthesis;
@@ -255,7 +248,7 @@ HTML_TEMPLATE = """
                 isListening = true;
                 const orb = document.getElementById('voiceOrb');
                 orb.className = 'voice-orb listening';
-                document.getElementById('statusTag').textContent = 'Listening...';
+                document.getElementById('statusTag').textContent = 'Listening... Speak now';
             };
 
             recognition.onresult = (event) => {
@@ -279,18 +272,16 @@ HTML_TEMPLATE = """
                 }
             };
 
-            recognition.onerror = (e) => {
+            recognition.onerror = () => {
                 stopVoiceState();
-                document.getElementById('statusTag').textContent = 'Voice error. Tap to retry.';
+                document.getElementById('statusTag').textContent = 'Error listening. Tap to try again.';
             };
 
             recognition.onend = () => {
-                if (isListening) {
-                    stopVoiceState();
-                }
+                if (isListening) stopVoiceState();
             };
         } else {
-            document.getElementById('statusTag').textContent = 'Voice not supported on this browser.';
+            document.getElementById('statusTag').textContent = 'Voice recognition not supported in browser.';
         }
 
         function toggleVoiceLive() {
@@ -299,7 +290,7 @@ HTML_TEMPLATE = """
                 recognition.stop();
                 stopVoiceState();
             } else {
-                synthesis.cancel(); // Stop speaking if currently talking
+                synthesis.cancel();
                 recognition.start();
             }
         }
@@ -308,7 +299,7 @@ HTML_TEMPLATE = """
             isListening = false;
             const orb = document.getElementById('voiceOrb');
             orb.className = 'voice-orb';
-            document.getElementById('statusTag').textContent = 'Tap icon to speak live';
+            document.getElementById('statusTag').textContent = 'Tap mic button to talk live';
         }
 
         async function processVoiceInput(userText) {
@@ -336,19 +327,16 @@ HTML_TEMPLATE = """
             synthesis.cancel();
 
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-
             const orb = document.getElementById('voiceOrb');
 
             utterance.onstart = () => {
                 orb.className = 'voice-orb speaking';
-                document.getElementById('statusTag').textContent = 'Tringo Speaking...';
+                document.getElementById('statusTag').textContent = 'Tringo AI Speaking...';
             };
 
             utterance.onend = () => {
                 orb.className = 'voice-orb';
-                document.getElementById('statusTag').textContent = 'Tap icon to speak live';
+                document.getElementById('statusTag').textContent = 'Tap mic button to talk live';
             };
 
             synthesis.speak(utterance);
@@ -395,7 +383,7 @@ HTML_TEMPLATE = """
                 tabChat.classList.remove('active');
                 chatPanel.style.display = 'none';
                 studioPanel.style.display = 'block';
-                synthesis.cancel();
+                if(synthesis) synthesis.cancel();
             }
         }
 
@@ -455,4 +443,10 @@ HTML_TEMPLATE = """
 
             if (type === 'text') {
                 const txt = document.getElementById('textPromptInput').value;
-                if (!txt.trim()) return alert('Plea
+                if (!txt.trim()) return alert('Please enter prompt text!');
+                payload.prompt = txt;
+                statusTxt.textContent = 'Generating 3D Animation... Please wait.';
+            } else {
+                if (!uploadedImgBase64) return alert('Please upload an image first!');
+                payload.image = uploadedImgBase64;
+                statusTxt.textContent = 'Animating image into 3D... Please w
