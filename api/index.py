@@ -32,7 +32,7 @@ HTML_TEMPLATE = """
         .panel.active { display: flex; flex-direction: column; }
 
         /* Panel 1: AI Chat */
-        #chatPanel { position: relative; background: #000; }
+        #chatPanel { position: relative; background: #050505; }
         #avatarCanvas { width: 100%; height: 100%; display: block; }
         .subtitle-box { position: absolute; top: 16px; left: 4%; width: 92%; background: rgba(20, 20, 20, 0.85); border: 1px solid #333; border-radius: 14px; padding: 12px 16px; text-align: center; font-size: 0.9rem; z-index: 5; color: #fff; }
         .chat-bar { position: absolute; bottom: 20px; left: 4%; width: 92%; display: flex; gap: 8px; z-index: 5; }
@@ -65,7 +65,7 @@ HTML_TEMPLATE = """
 <body>
 
     <div class="app-container">
-        <!-- Top Navigation Bar -->
+        <!-- Navigation -->
         <div class="top-nav">
             <button class="nav-btn active" id="tabChat" onclick="changeTab('chat')">AI Chat</button>
             <button class="nav-btn" id="tabStudio" onclick="changeTab('studio')">3D Video Studio</button>
@@ -75,7 +75,7 @@ HTML_TEMPLATE = """
             <!-- AI Chat Panel -->
             <div id="chatPanel" class="panel active">
                 <canvas id="avatarCanvas"></canvas>
-                <div class="subtitle-box" id="subBox">Talk or ask anything to Tringo AI!</div>
+                <div class="subtitle-box" id="subBox">Ask or speak anything to Tringo AI!</div>
                 <div class="chat-bar">
                     <input type="text" id="msgInput" placeholder="Message Tringo AI..." onkeypress="onKey(event)">
                     <button onclick="sendChat()">Send</button>
@@ -93,7 +93,7 @@ HTML_TEMPLATE = """
                     <!-- Text Mode -->
                     <div class="card" id="textCard">
                         <h3>Generate 3D Animation</h3>
-                        <textarea id="textPromptInput" placeholder="Describe 3D scene (e.g. A character dancing in futuristic street)..."></textarea>
+                        <textarea id="textPromptInput" placeholder="Describe 3D scene..."></textarea>
                         <button class="btn-submit" onclick="startGeneration('text')">Render 3D Video</button>
                     </div>
 
@@ -127,7 +127,6 @@ HTML_TEMPLATE = """
     <script>
         let uploadedImgBase64 = null;
 
-        // Guaranteed Tab Switching
         function changeTab(tab) {
             document.getElementById('tabChat').classList.remove('active');
             document.getElementById('tabStudio').classList.remove('active');
@@ -143,7 +142,6 @@ HTML_TEMPLATE = """
             }
         }
 
-        // Guaranteed Sub Mode Switching
         function changeStudioMode(mode) {
             document.getElementById('subText').classList.remove('active');
             document.getElementById('subPic').classList.remove('active');
@@ -158,7 +156,6 @@ HTML_TEMPLATE = """
             }
         }
 
-        // Image Handling
         function onFilePicked(input) {
             const file = input.files[0];
             if (file) {
@@ -185,7 +182,6 @@ HTML_TEMPLATE = """
             document.getElementById('delBtn').style.display = 'none';
         }
 
-        // Generation Trigger
         async function startGeneration(type) {
             const statusCard = document.getElementById('statusCard');
             const statusTxt = document.getElementById('statusTxt');
@@ -230,40 +226,62 @@ HTML_TEMPLATE = """
             }
         }
 
-        // Simple Animated Canvas (No External JS Library Dependency)
+        /* Meta AI Style Dynamic Animated Ring Logo */
         const canvas = document.getElementById('avatarCanvas');
         const ctx = canvas.getContext('2d');
-        let angle = 0;
+        let rotationAngle = 0;
 
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
         }
 
-        function drawAvatar() {
+        function drawMetaAiRing() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2 - 20;
+            
+            // Positioning slightly higher than center
+            const centerX = canvas.width / 2;
+            const centerY = (canvas.height / 2) - 50; 
+            
+            const numTeardrops = 8;
+            const ringRadius = 42; 
+            
+            rotationAngle += 0.025; // Smooth rotation speed
 
-            // Simple glowing animated orb
-            angle += 0.03;
-            const r = 50 + Math.sin(angle) * 6;
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotationAngle);
 
-            ctx.beginPath();
-            ctx.arc(cx, cy, r, 0, Math.PI * 2);
-            ctx.fillStyle = '#ff2a5f';
-            ctx.shadowColor = '#ff2a5f';
-            ctx.shadowBlur = 25;
-            ctx.fill();
+            for (let i = 0; i < numTeardrops; i++) {
+                const angle = (i * (Math.PI * 2 / numTeardrops));
+                const x = Math.cos(angle) * ringRadius;
+                const y = Math.sin(angle) * ringRadius;
 
-            requestAnimationFrame(drawAvatar);
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle + Math.PI / 2);
+
+                // Meta AI Style gradient colors (Purple to Blue / Pink accent)
+                const hue = (i * 35 + rotationAngle * 50) % 360;
+                ctx.fillStyle = `hsl(${hue}, 85%, 65%)`;
+
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 8, 16, 0, 0, Math.PI * 2);
+                ctx.shadowColor = `hsl(${hue}, 85%, 65%)`;
+                ctx.shadowBlur = 12;
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            ctx.restore();
+            requestAnimationFrame(drawMetaAiRing);
         }
 
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
-        drawAvatar();
+        drawMetaAiRing();
 
-        // Chat Functions
         async function sendChat() {
             const inp = document.getElementById('msgInput');
             const val = inp.value;
@@ -299,17 +317,25 @@ def home():
 def chat():
     data = request.json or {}
     user_msg = data.get('message', '')
+    
+    if not GEMINI_API_KEY:
+        return jsonify({"response": "Gemini API key is missing in environment variables."})
+
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     payload = {
-        "contents": [{"role": "user", "parts": [{"text": user_msg}]}],
-        "systemInstruction": {"parts": [{"text": "You are Tringo AI assistant."}]}
+        "contents": [{"parts": [{"text": user_msg}]}]
     }
+    
     try:
-        r = requests.post(url, json=payload, timeout=15).json()
-        reply = r['candidates'][0]['content']['parts'][0]['text']
-        return jsonify({"response": reply})
-    except Exception:
-        return jsonify({"response": "Error connecting to Gemini API."})
+        r = requests.post(url, json=payload, timeout=15)
+        res_data = r.json()
+        if 'candidates' in res_data:
+            reply = res_data['candidates'][0]['content']['parts'][0]['text']
+            return jsonify({"response": reply})
+        else:
+            return jsonify({"response": "API Key Error or Quota Limit."})
+    except Exception as e:
+        return jsonify({"response": f"Connection Exception: {str(e)}"})
 
 @app.route('/generate-3d', methods=['POST'])
 def generate_3d():
@@ -360,5 +386,5 @@ def generate_3d():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
     
