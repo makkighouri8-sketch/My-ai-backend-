@@ -32,9 +32,34 @@ HTML_TEMPLATE = """
         .panel.active { display: flex; flex-direction: column; }
 
         /* Panel 1: AI Chat */
-        #chatPanel { position: relative; background: #050505; }
-        #avatarCanvas { width: 100%; height: 100%; display: block; }
+        #chatPanel { position: relative; background: #050505; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
+        /* Direct Original Rotating GIF Holder */
+        .gif-container {
+            position: absolute;
+            top: 38%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 220px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gif-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            animation: rotateGif 6s linear infinite;
+            filter: drop-shadow(0 0 15px rgba(208, 55, 253, 0.4));
+        }
+
+        @keyframes rotateGif {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .greeting-box { position: absolute; top: 62%; left: 0; width: 100%; text-align: center; z-index: 5; }
         .greeting-text { font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
         .sub-greeting { font-size: 0.9rem; color: #888888; }
@@ -70,14 +95,20 @@ HTML_TEMPLATE = """
 <body>
 
     <div class="app-container">
+        <!-- Navigation -->
         <div class="top-nav">
             <button class="nav-btn active" id="tabChat" onclick="changeTab('chat')">AI Chat</button>
             <button class="nav-btn" id="tabStudio" onclick="changeTab('studio')">3D Video Studio</button>
         </div>
 
         <div class="main-content">
+            <!-- AI Chat Panel -->
             <div id="chatPanel" class="panel active">
-                <canvas id="avatarCanvas"></canvas>
+                
+                <!-- Exact GIF Direct Live Fitting -->
+                <div class="gif-container">
+                    <img src="https://i.ibb.co/L84852d/tringo-vortex.gif" alt="Tringo AI Animation">
+                </div>
                 
                 <div class="greeting-box" id="greetingContainer">
                     <div class="greeting-text" id="userNameLabel">Hi Jamshed,</div>
@@ -92,6 +123,7 @@ HTML_TEMPLATE = """
                 </div>
             </div>
 
+            <!-- Studio Panel -->
             <div id="studioPanel" class="panel">
                 <div class="studio-box">
                     <div class="sub-nav">
@@ -99,12 +131,14 @@ HTML_TEMPLATE = """
                         <button class="sub-btn" id="subPic" onclick="changeStudioMode('pic')">Pic to Animation</button>
                     </div>
 
+                    <!-- Text Mode -->
                     <div class="card" id="textCard">
                         <h3>Generate 3D Animation</h3>
                         <textarea id="textPromptInput" placeholder="Describe 3D scene..."></textarea>
                         <button class="btn-submit" onclick="startGeneration('text')">Render 3D Video</button>
                     </div>
 
+                    <!-- Pic Mode -->
                     <div class="card" id="picCard" style="display:none;">
                         <h3>Animate Image to 3D</h3>
                         <div class="upload-area" id="upArea" onclick="document.getElementById('fileInput').click()">
@@ -119,6 +153,7 @@ HTML_TEMPLATE = """
                         <button class="btn-submit" onclick="startGeneration('pic')">Animate Image</button>
                     </div>
 
+                    <!-- Status Display -->
                     <div class="card" id="statusCard" style="display:none;">
                         <h3>Status</h3>
                         <div class="loader-ring" id="loaderRing" style="display:none;"></div>
@@ -243,61 +278,6 @@ HTML_TEMPLATE = """
                 statusTxt.textContent = 'Server connection error!';
             }
         }
-
-        /* Exact Tringo AI GIF Neon Vortex Animation */
-        const canvas = document.getElementById('avatarCanvas');
-        const ctx = canvas.getContext('2d');
-        let rotationAngle = 0;
-
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-        }
-
-        function drawTringoGifVortex() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const centerX = canvas.width / 2;
-            const centerY = (canvas.height / 2) - 60; 
-            
-            rotationAngle += 0.04;
-
-            ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.rotate(rotationAngle);
-
-            const arms = 3;
-            ctx.lineWidth = 12;
-            ctx.lineCap = 'round';
-
-            for (let i = 0; i < arms; i++) {
-                ctx.save();
-                ctx.rotate((i * Math.PI * 2) / arms);
-
-                const grad = ctx.createRadialGradient(0, 0, 10, 0, 0, 80);
-                grad.addColorStop(0, '#ff1ac6');
-                grad.addColorStop(0.6, '#a100ff');
-                grad.addColorStop(1, 'rgba(161, 0, 255, 0)');
-
-                ctx.strokeStyle = grad;
-                ctx.shadowColor = '#d037fd';
-                ctx.shadowBlur = 18;
-
-                ctx.beginPath();
-                ctx.moveTo(15, 0);
-                ctx.bezierCurveTo(40, -10, 70, 30, 85, 75);
-                ctx.stroke();
-
-                ctx.restore();
-            }
-
-            ctx.restore();
-            requestAnimationFrame(drawTringoGifVortex);
-        }
-
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        drawTringoGifVortex();
 
         async function sendChat() {
             const inp = document.getElementById('msgInput');
