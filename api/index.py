@@ -1,17 +1,12 @@
-from flask import Flask, request, jsonify, render_template_string, send_from_directory
+from flask import Flask, request, jsonify, render_template_string
 import os
 import requests
-import base64
 import time
 
 app = Flask(__name__)
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "r8_TjDtv9s6nWDFPGcuW7btlVAWCpY5qEk138nnF")
-
-@app.route('/avatar.glb')
-def serve_avatar():
-    return send_from_directory(os.path.dirname(__file__), 'avatar.glb')
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -20,114 +15,109 @@ HTML_TEMPLATE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tringo AI Studio</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        html, body { width: 100%; height: 100%; background: #000000; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+        html, body { width: 100%; height: 100%; background: #050505; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
 
-        /* Root Layout Fix: Forces full viewport screen, removing nested cards */
-        .app-shell { display: flex; flex-direction: column; width: 100vw; height: 100vh; background: #000000; }
+        .app-container { display: flex; flex-direction: column; width: 100vw; height: 100vh; background: #050505; }
 
-        /* Top Dynamic Navigation */
-        .nav-header { display: flex; height: 60px; background: #090909; border-bottom: 1px solid #1f1f1f; flex-shrink: 0; z-index: 999; }
-        .tab-btn { flex: 1; background: transparent; border: none; color: #777777; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s ease; }
-        .tab-btn.active { color: #ff2a5f; border-bottom: 3px solid #ff2a5f; background: rgba(255, 42, 95, 0.05); }
+        /* Top Bar */
+        .top-nav { display: flex; height: 55px; background: #111111; border-bottom: 1px solid #222; flex-shrink: 0; }
+        .nav-btn { flex: 1; background: transparent; border: none; color: #777777; font-weight: bold; font-size: 0.95rem; cursor: pointer; border-bottom: 3px solid transparent; }
+        .nav-btn.active { color: #ff2a5f; border-bottom: 3px solid #ff2a5f; background: rgba(255, 42, 95, 0.08); }
 
-        /* Main Viewport Container */
-        .viewport-container { flex: 1; position: relative; width: 100%; height: calc(100vh - 60px); overflow: hidden; }
-        .view-panel { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-        .view-panel.active { display: flex; flex-direction: column; }
+        /* Content Area */
+        .main-content { flex: 1; position: relative; width: 100%; height: calc(100vh - 55px); overflow: hidden; }
+        .panel { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        .panel.active { display: flex; flex-direction: column; }
 
-        /* Panel 1: AI Chat Dashboard */
-        #chatView { background: #000000; position: relative; }
-        #canvas3D { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-        .chat-subtitle { position: absolute; top: 20px; left: 5%; width: 90%; background: rgba(15, 15, 15, 0.85); backdrop-filter: blur(12px); border: 1px solid #2a2a2a; border-radius: 16px; padding: 14px 18px; text-align: center; font-size: 0.95rem; z-index: 10; color: #ffffff; box-shadow: 0 8px 32px rgba(0,0,0,0.8); }
-        .chat-controls { position: absolute; bottom: 24px; left: 5%; width: 90%; display: flex; align-items: center; gap: 10px; z-index: 10; }
-        .chat-input { flex: 1; height: 50px; background: rgba(18, 18, 18, 0.9); border: 1px solid #333333; border-radius: 25px; padding: 0 20px; color: #ffffff; font-size: 0.95rem; outline: none; }
-        .chat-input:focus { border-color: #ff2a5f; }
-        .btn-send { height: 50px; padding: 0 24px; background: #ff2a5f; border: none; border-radius: 25px; color: #ffffff; font-weight: 700; cursor: pointer; flex-shrink: 0; }
-        .btn-mic { width: 50px; height: 50px; border-radius: 50%; background: #22c55e; border: none; color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        /* Panel 1: AI Chat */
+        #chatPanel { position: relative; background: #000; }
+        #avatarCanvas { width: 100%; height: 100%; display: block; }
+        .subtitle-box { position: absolute; top: 16px; left: 4%; width: 92%; background: rgba(20, 20, 20, 0.85); border: 1px solid #333; border-radius: 14px; padding: 12px 16px; text-align: center; font-size: 0.9rem; z-index: 5; color: #fff; }
+        .chat-bar { position: absolute; bottom: 20px; left: 4%; width: 92%; display: flex; gap: 8px; z-index: 5; }
+        .chat-bar input { flex: 1; height: 48px; background: #151515; border: 1px solid #333; border-radius: 24px; padding: 0 16px; color: #fff; outline: none; font-size: 0.95rem; }
+        .chat-bar input:focus { border-color: #ff2a5f; }
+        .chat-bar button { padding: 0 20px; height: 48px; background: #ff2a5f; border: none; border-radius: 24px; color: #fff; font-weight: bold; cursor: pointer; }
 
-        /* Panel 2: 3D Video Studio */
-        #studioView { overflow-y: auto; padding: 20px 16px; background: #000000; }
-        .studio-wrapper { max-width: 550px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px; }
-        .sub-nav { display: flex; background: #111111; padding: 6px; border-radius: 30px; border: 1px solid #222222; }
-        .sub-tab-btn { flex: 1; padding: 12px; background: transparent; border: none; color: #888888; font-weight: 700; font-size: 0.85rem; border-radius: 24px; cursor: pointer; transition: all 0.2s; }
-        .sub-tab-btn.active { background: #2563eb; color: #ffffff; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4); }
-
-        .card-block { background: #0d0d0d; border: 1px solid #1f1f1f; border-radius: 20px; padding: 20px; }
-        .card-block h3 { color: #ff2a5f; font-size: 1.05rem; margin-bottom: 14px; font-weight: 700; }
-        .studio-textarea { width: 100%; height: 110px; background: #000000; border: 1px solid #2a2a2a; border-radius: 14px; padding: 14px; color: #ffffff; font-size: 0.9rem; resize: none; outline: none; margin-bottom: 14px; }
+        /* Panel 2: Studio */
+        #studioPanel { overflow-y: auto; padding: 16px; background: #050505; }
+        .studio-box { max-width: 500px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 16px; }
         
-        .dropzone { border: 2px dashed #333333; background: #000000; border-radius: 14px; padding: 24px; text-align: center; cursor: pointer; margin-bottom: 14px; position: relative; min-height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
-        .preview-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 10px; display: none; }
-        .btn-remove { position: absolute; top: 10px; right: 10px; background: #ff2a5f; color: #ffffff; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; display: none; z-index: 10; }
+        .sub-nav { display: flex; background: #121212; padding: 4px; border-radius: 20px; border: 1px solid #222; }
+        .sub-btn { flex: 1; padding: 10px; background: transparent; border: none; color: #777; font-weight: bold; font-size: 0.85rem; border-radius: 16px; cursor: pointer; }
+        .sub-btn.active { background: #2563eb; color: #fff; }
 
-        .btn-action { width: 100%; padding: 14px; background: #2563eb; border: none; border-radius: 30px; color: #ffffff; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35); }
-        .btn-action:disabled { background: #444444; cursor: not-allowed; box-shadow: none; }
+        .card { background: #121212; border: 1px solid #222; border-radius: 16px; padding: 16px; }
+        .card h3 { color: #ff2a5f; font-size: 1rem; margin-bottom: 12px; }
+        .card textarea { width: 100%; height: 100px; background: #000; border: 1px solid #333; border-radius: 12px; padding: 12px; color: #fff; resize: none; outline: none; font-size: 0.9rem; margin-bottom: 12px; }
 
-        .spinner { border: 3px solid #1f1f1f; border-top: 3px solid #2563eb; border-radius: 50%; width: 30px; height: 30px; animation: spin 0.9s linear infinite; margin: 12px auto; }
+        .upload-area { border: 2px dashed #333; background: #000; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 12px; position: relative; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .upload-area img { width: 100%; max-height: 180px; object-fit: contain; border-radius: 8px; display: none; }
+        .btn-del { position: absolute; top: 8px; right: 8px; background: #ff2a5f; color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; font-weight: bold; cursor: pointer; display: none; }
+
+        .btn-submit { width: 100%; padding: 12px; background: #2563eb; border: none; border-radius: 20px; color: #fff; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
+        
+        .loader-ring { border: 3px solid #222; border-top: 3px solid #2563eb; border-radius: 50%; width: 28px; height: 28px; animation: spin 0.8s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div class="app-shell">
-        <!-- Top Navigation -->
-        <div class="nav-header">
-            <button class="tab-btn active" id="btnTabChat" onclick="openTab('chat')">AI Chat</button>
-            <button class="tab-btn" id="btnTabStudio" onclick="openTab('studio')">3D Video Studio</button>
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <div class="top-nav">
+            <button class="nav-btn active" id="tabChat" onclick="changeTab('chat')">AI Chat</button>
+            <button class="nav-btn" id="tabStudio" onclick="changeTab('studio')">3D Video Studio</button>
         </div>
 
-        <div class="viewport-container">
+        <div class="main-content">
             <!-- AI Chat Panel -->
-            <div id="chatView" class="view-panel active">
-                <div id="canvas3D"></div>
-                <div class="chat-subtitle" id="subtitleText">Ask me anything or speak to Tringo!</div>
-                <div class="chat-controls">
-                    <button class="btn-mic" onclick="alert('Mic Active!')">🎙️</button>
-                    <input type="text" id="chatInput" class="chat-input" placeholder="Message Tringo AI..." onkeypress="handleKeyPress(event)">
-                    <button class="btn-send" onclick="sendChatMessage()">Send</button>
+            <div id="chatPanel" class="panel active">
+                <canvas id="avatarCanvas"></canvas>
+                <div class="subtitle-box" id="subBox">Talk or ask anything to Tringo AI!</div>
+                <div class="chat-bar">
+                    <input type="text" id="msgInput" placeholder="Message Tringo AI..." onkeypress="onKey(event)">
+                    <button onclick="sendChat()">Send</button>
                 </div>
             </div>
 
-            <!-- 3D Video Studio Panel -->
-            <div id="studioView" class="view-panel">
-                <div class="studio-wrapper">
+            <!-- Studio Panel -->
+            <div id="studioPanel" class="panel">
+                <div class="studio-box">
                     <div class="sub-nav">
-                        <button class="sub-tab-btn active" id="btnSubText" onclick="openSubMode('text')">Prompt to 3D</button>
-                        <button class="sub-tab-btn" id="btnSubPic" onclick="openSubMode('pic')">Pic to Animation</button>
+                        <button class="sub-btn active" id="subText" onclick="changeStudioMode('text')">Prompt to 3D</button>
+                        <button class="sub-btn" id="subPic" onclick="changeStudioMode('pic')">Pic to Animation</button>
                     </div>
 
                     <!-- Text Mode -->
-                    <div class="card-block" id="cardTextMode">
-                        <h3>Generate 3D Animation Video</h3>
-                        <textarea class="studio-textarea" id="textPrompt" placeholder="Describe your 3D animation scene (e.g., A funny 3D character talking about finance in space)..."></textarea>
-                        <button class="btn-action" id="btnGenText" onclick="processStudio('text')">Render 3D Video</button>
+                    <div class="card" id="textCard">
+                        <h3>Generate 3D Animation</h3>
+                        <textarea id="textPromptInput" placeholder="Describe 3D scene (e.g. A character dancing in futuristic street)..."></textarea>
+                        <button class="btn-submit" onclick="startGeneration('text')">Render 3D Video</button>
                     </div>
 
-                    <!-- Image Mode -->
-                    <div class="card-block" id="cardPicMode" style="display: none;">
+                    <!-- Pic Mode -->
+                    <div class="card" id="picCard" style="display:none;">
                         <h3>Animate Image to 3D</h3>
-                        <div class="dropzone" id="dropArea" onclick="document.getElementById('imgFile').click()">
-                            <button class="btn-remove" id="btnRemoveImg" onclick="resetImage(event)">✕</button>
-                            <div id="uploadContent">
-                                <span style="color:#ffffff; font-weight: 600;">Tap to Upload Image</span>
-                                <p style="color:#777777; font-size: 0.8rem; margin-top: 4px;">Select JPG/PNG photo</p>
+                        <div class="upload-area" id="upArea" onclick="document.getElementById('fileInput').click()">
+                            <button class="btn-del" id="delBtn" onclick="removeSelectedImage(event)">✕</button>
+                            <div id="upText">
+                                <span style="color:#fff; font-weight:bold;">Tap to Upload Photo</span>
+                                <p style="color:#777; font-size:0.8rem; margin-top:4px;">JPG or PNG file</p>
                             </div>
-                            <img id="imgPreview" class="preview-img" alt="Preview">
-                            <input type="file" id="imgFile" accept="image/*" style="display:none;" onchange="handleImageUpload(this)">
+                            <img id="imgPreview" alt="Preview">
+                            <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="onFilePicked(this)">
                         </div>
-                        <button class="btn-action" id="btnGenPic" onclick="processStudio('pic')">Animate Image</button>
+                        <button class="btn-submit" onclick="startGeneration('pic')">Animate Image</button>
                     </div>
 
-                    <!-- Output & Loader Status -->
-                    <div class="card-block" id="cardStatus" style="display: none;">
-                        <h3>Generation Status</h3>
-                        <div id="statusSpinner" class="spinner" style="display:none;"></div>
-                        <p id="statusMsg" style="text-align:center; color:#888888; font-size:0.9rem;"></p>
-                        <div id="mediaResult" style="margin-top:14px;"></div>
+                    <!-- Status Display -->
+                    <div class="card" id="statusCard" style="display:none;">
+                        <h3>Status</h3>
+                        <div class="loader-ring" id="loaderRing" style="display:none;"></div>
+                        <p id="statusTxt" style="text-align:center; font-size:0.85rem; color:#aaa;"></p>
+                        <div id="videoHolder" style="margin-top:10px;"></div>
                     </div>
                 </div>
             </div>
@@ -135,188 +125,167 @@ HTML_TEMPLATE = """
     </div>
 
     <script>
-        let selectedBase64Img = null;
+        let uploadedImgBase64 = null;
 
-        // Guaranteed Tab Switch Logic
-        function openTab(tabName) {
-            document.getElementById('btnTabChat').classList.remove('active');
-            document.getElementById('btnTabStudio').classList.remove('active');
-            document.getElementById('chatView').classList.remove('active');
-            document.getElementById('studioView').classList.remove('active');
+        // Guaranteed Tab Switching
+        function changeTab(tab) {
+            document.getElementById('tabChat').classList.remove('active');
+            document.getElementById('tabStudio').classList.remove('active');
+            document.getElementById('chatPanel').classList.remove('active');
+            document.getElementById('studioPanel').classList.remove('active');
 
-            if (tabName === 'chat') {
-                document.getElementById('btnTabChat').classList.add('active');
-                document.getElementById('chatView').classList.add('active');
-                resizeRenderer();
+            if (tab === 'chat') {
+                document.getElementById('tabChat').classList.add('active');
+                document.getElementById('chatPanel').classList.add('active');
             } else {
-                document.getElementById('btnTabStudio').classList.add('active');
-                document.getElementById('studioView').classList.add('active');
+                document.getElementById('tabStudio').classList.add('active');
+                document.getElementById('studioPanel').classList.add('active');
             }
         }
 
-        // Sub-mode Switch Logic
-        function openSubMode(mode) {
-            document.getElementById('btnSubText').classList.remove('active');
-            document.getElementById('btnSubPic').classList.remove('active');
+        // Guaranteed Sub Mode Switching
+        function changeStudioMode(mode) {
+            document.getElementById('subText').classList.remove('active');
+            document.getElementById('subPic').classList.remove('active');
             if (mode === 'text') {
-                document.getElementById('btnSubText').classList.add('active');
-                document.getElementById('cardTextMode').style.display = 'block';
-                document.getElementById('cardPicMode').style.display = 'none';
+                document.getElementById('subText').classList.add('active');
+                document.getElementById('textCard').style.display = 'block';
+                document.getElementById('picCard').style.display = 'none';
             } else {
-                document.getElementById('btnSubPic').classList.add('active');
-                document.getElementById('cardTextMode').style.display = 'none';
-                document.getElementById('cardPicMode').style.display = 'block';
+                document.getElementById('subPic').classList.add('active');
+                document.getElementById('textCard').style.display = 'none';
+                document.getElementById('picCard').style.display = 'block';
             }
         }
 
-        // Image Handling Functions
-        function handleImageUpload(input) {
+        // Image Handling
+        function onFilePicked(input) {
             const file = input.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    selectedBase64Img = e.target.result;
-                    document.getElementById('imgPreview').src = selectedBase64Img;
-                    document.getElementById('imgPreview').style.display = 'block';
-                    document.getElementById('uploadContent').style.display = 'none';
-                    document.getElementById('btnRemoveImg').style.display = 'block';
+                    uploadedImgBase64 = e.target.result;
+                    const preview = document.getElementById('imgPreview');
+                    preview.src = uploadedImgBase64;
+                    preview.style.display = 'block';
+                    document.getElementById('upText').style.display = 'none';
+                    document.getElementById('delBtn').style.display = 'block';
                 }
                 reader.readAsDataURL(file);
             }
         }
 
-        function resetImage(e) {
+        function removeSelectedImage(e) {
             e.stopPropagation();
-            selectedBase64Img = null;
-            document.getElementById('imgFile').value = '';
+            uploadedImgBase64 = null;
+            document.getElementById('fileInput').value = '';
             document.getElementById('imgPreview').src = '';
             document.getElementById('imgPreview').style.display = 'none';
-            document.getElementById('uploadContent').style.display = 'block';
-            document.getElementById('btnRemoveImg').style.display = 'none';
+            document.getElementById('upText').style.display = 'block';
+            document.getElementById('delBtn').style.display = 'none';
         }
 
-        // Video Studio API Caller
-        async function processStudio(type) {
-            const statusCard = document.getElementById('cardStatus');
-            const statusMsg = document.getElementById('statusMsg');
-            const spinner = document.getElementById('statusSpinner');
-            const mediaResult = document.getElementById('mediaResult');
+        // Generation Trigger
+        async function startGeneration(type) {
+            const statusCard = document.getElementById('statusCard');
+            const statusTxt = document.getElementById('statusTxt');
+            const loaderRing = document.getElementById('loaderRing');
+            const videoHolder = document.getElementById('videoHolder');
 
             statusCard.style.display = 'block';
-            spinner.style.display = 'block';
-            mediaResult.innerHTML = '';
+            loaderRing.style.display = 'block';
+            videoHolder.innerHTML = '';
 
-            let bodyPayload = { type: type };
+            let payload = { type: type };
 
             if (type === 'text') {
-                const promptVal = document.getElementById('textPrompt').value;
-                if (!promptVal.trim()) return alert('Please write a prompt!');
-                bodyPayload.prompt = promptVal;
-                statusMsg.textContent = 'Rendering 3D Scene... (30-60 sec)';
+                const txt = document.getElementById('textPromptInput').value;
+                if (!txt.trim()) return alert('Please enter prompt text!');
+                payload.prompt = txt;
+                statusTxt.textContent = 'Generating 3D Animation... Please wait.';
             } else {
-                if (!selectedBase64Img) return alert('Please upload an image!');
-                bodyPayload.image = selectedBase64Img;
-                statusMsg.textContent = 'Animating uploaded photo... (30-60 sec)';
+                if (!uploadedImgBase64) return alert('Please upload an image first!');
+                payload.image = uploadedImgBase64;
+                statusTxt.textContent = 'Animating image into 3D... Please wait.';
             }
 
             try {
                 const res = await fetch('/generate-3d', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(bodyPayload)
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                spinner.style.display = 'none';
+                loaderRing.style.display = 'none';
 
                 if (data.status === 'success' && data.video_url) {
-                    statusMsg.textContent = 'Render Complete!';
-                    mediaResult.innerHTML = `<video controls autoplay loop width="100%" style="border-radius:12px;"><source src="${data.video_url}" type="video/mp4"></video>`;
+                    statusTxt.textContent = 'Completed!';
+                    videoHolder.innerHTML = `<video controls autoplay loop width="100%" style="border-radius:10px;"><source src="${data.video_url}" type="video/mp4"></video>`;
                 } else {
-                    statusMsg.textContent = 'Error: ' + (data.message || 'Generation failed.');
+                    statusTxt.textContent = 'Error: ' + (data.message || 'Generation failed');
                 }
             } catch (err) {
-                spinner.style.display = 'none';
-                statusMsg.textContent = 'Connection or Server Error!';
+                loaderRing.style.display = 'none';
+                statusTxt.textContent = 'Server connection error!';
             }
         }
 
-        // Three.js 3D Avatar Rendering with Safe Crash Guard
-        let scene, camera, renderer, avatarMesh;
-        function initThreeJS() {
-            try {
-                const holder = document.getElementById('canvas3D');
-                scene = new THREE.Scene();
-                camera = new THREE.PerspectiveCamera(45, holder.clientWidth / holder.clientHeight, 0.1, 1000);
-                camera.position.set(0, 1.4, 1.4);
+        // Simple Animated Canvas (No External JS Library Dependency)
+        const canvas = document.getElementById('avatarCanvas');
+        const ctx = canvas.getContext('2d');
+        let angle = 0;
 
-                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-                renderer.setSize(holder.clientWidth, holder.clientHeight);
-                renderer.setClearColor(0x000000, 1);
-                holder.appendChild(renderer.domElement);
-
-                const light = new THREE.AmbientLight(0xffffff, 1.5);
-                scene.add(light);
-
-                const loader = new THREE.GLTFLoader();
-                loader.load('/avatar.glb', function(gltf) {
-                    avatarMesh = gltf.scene;
-                    scene.add(avatarMesh);
-                }, undefined, function() {
-                    // Fallback visual mesh if avatar.glb is missing
-                    const geom = new THREE.SphereGeometry(0.35, 32, 32);
-                    const mat = new THREE.MeshBasicMaterial({ color: 0xff2a5f, wireframe: true });
-                    avatarMesh = new THREE.Mesh(geom, mat);
-                    avatarMesh.position.set(0, 1.3, 0);
-                    scene.add(avatarMesh);
-                });
-
-                window.addEventListener('resize', resizeRenderer);
-                runAnimationLoop();
-            } catch (err) {
-                console.warn("3D Render Non-blocking warning:", err);
-            }
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
         }
 
-        function resizeRenderer() {
-            const holder = document.getElementById('canvas3D');
-            if (holder && camera && renderer) {
-                camera.aspect = holder.clientWidth / holder.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(holder.clientWidth, holder.clientHeight);
-            }
+        function drawAvatar() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2 - 20;
+
+            // Simple glowing animated orb
+            angle += 0.03;
+            const r = 50 + Math.sin(angle) * 6;
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff2a5f';
+            ctx.shadowColor = '#ff2a5f';
+            ctx.shadowBlur = 25;
+            ctx.fill();
+
+            requestAnimationFrame(drawAvatar);
         }
 
-        function runAnimationLoop() {
-            requestAnimationFrame(runAnimationLoop);
-            if (avatarMesh) avatarMesh.rotation.y += 0.008;
-            if (renderer && scene && camera) renderer.render(scene, camera);
-        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        drawAvatar();
 
-        // AI Chat Messaging
-        async function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const text = input.value;
-            if (!text.trim()) return;
+        // Chat Functions
+        async function sendChat() {
+            const inp = document.getElementById('msgInput');
+            const val = inp.value;
+            if (!val.trim()) return;
             
-            document.getElementById('subtitleText').textContent = "You: " + text;
-            input.value = '';
+            document.getElementById('subBox').textContent = "You: " + val;
+            inp.value = '';
 
             try {
                 const res = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text })
+                    body: JSON.stringify({ message: val })
                 });
                 const data = await res.json();
-                document.getElementById('subtitleText').textContent = "Tringo: " + (data.response || "No reply");
-            } catch(e) {
-                document.getElementById('subtitleText').textContent = "Connection error!";
+                document.getElementById('subBox').textContent = "Tringo: " + (data.response || "No response");
+            } catch (e) {
+                document.getElementById('subBox').textContent = "Connection error!";
             }
         }
 
-        function handleKeyPress(e) { if (e.key === 'Enter') sendChatMessage(); }
-
-        window.onload = initThreeJS;
+        function onKey(e) { if (e.key === 'Enter') sendChat(); }
     </script>
 </body>
 </html>
@@ -377,4 +346,19 @@ def generate_3d():
         
         for _ in range(30):
             time.sleep(3)
-            poll_res = requests.get(pol
+            poll_res = requests.get(poll_url, headers=headers).json()
+            if poll_res.get("status") == "succeeded":
+                output_url = poll_res.get("output")
+                if isinstance(output_url, list):
+                    output_url = output_url[0]
+                return jsonify({"status": "success", "video_url": output_url})
+            elif poll_res.get("status") == "failed":
+                return jsonify({"status": "error", "message": "3D Generation failed."}), 500
+
+        return jsonify({"status": "error", "message": "Rendering timed out."}), 504
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
+    
