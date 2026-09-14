@@ -24,7 +24,7 @@ HTML_TEMPLATE = """
         /* Top Bar */
         .top-nav { display: flex; height: 55px; background: #111111; border-bottom: 1px solid #222; flex-shrink: 0; }
         .nav-btn { flex: 1; background: transparent; border: none; color: #777777; font-weight: bold; font-size: 0.95rem; cursor: pointer; border-bottom: 3px solid transparent; }
-        .nav-btn.active { color: #ff2a5f; border-bottom: 3px solid #ff2a5f; background: rgba(255, 42, 95, 0.08); }
+        .nav-btn.active { color: #d037fd; border-bottom: 3px solid #d037fd; background: rgba(208, 55, 253, 0.08); }
 
         /* Content Area */
         .main-content { flex: 1; position: relative; width: 100%; height: calc(100vh - 55px); overflow: hidden; }
@@ -34,11 +34,16 @@ HTML_TEMPLATE = """
         /* Panel 1: AI Chat */
         #chatPanel { position: relative; background: #050505; }
         #avatarCanvas { width: 100%; height: 100%; display: block; }
+        
+        .greeting-box { position: absolute; top: 62%; left: 0; width: 100%; text-align: center; z-index: 5; }
+        .greeting-text { font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
+        .sub-greeting { font-size: 0.9rem; color: #888888; }
+
         .subtitle-box { position: absolute; top: 16px; left: 4%; width: 92%; background: rgba(20, 20, 20, 0.85); border: 1px solid #333; border-radius: 14px; padding: 12px 16px; text-align: center; font-size: 0.9rem; z-index: 5; color: #fff; }
         .chat-bar { position: absolute; bottom: 20px; left: 4%; width: 92%; display: flex; gap: 8px; z-index: 5; }
         .chat-bar input { flex: 1; height: 48px; background: #151515; border: 1px solid #333; border-radius: 24px; padding: 0 16px; color: #fff; outline: none; font-size: 0.95rem; }
-        .chat-bar input:focus { border-color: #ff2a5f; }
-        .chat-bar button { padding: 0 20px; height: 48px; background: #ff2a5f; border: none; border-radius: 24px; color: #fff; font-weight: bold; cursor: pointer; }
+        .chat-bar input:focus { border-color: #d037fd; }
+        .chat-bar button { padding: 0 20px; height: 48px; background: #d037fd; border: none; border-radius: 24px; color: #fff; font-weight: bold; cursor: pointer; }
 
         /* Panel 2: Studio */
         #studioPanel { overflow-y: auto; padding: 16px; background: #050505; }
@@ -49,7 +54,7 @@ HTML_TEMPLATE = """
         .sub-btn.active { background: #2563eb; color: #fff; }
 
         .card { background: #121212; border: 1px solid #222; border-radius: 16px; padding: 16px; }
-        .card h3 { color: #ff2a5f; font-size: 1rem; margin-bottom: 12px; }
+        .card h3 { color: #d037fd; font-size: 1rem; margin-bottom: 12px; }
         .card textarea { width: 100%; height: 100px; background: #000; border: 1px solid #333; border-radius: 12px; padding: 12px; color: #fff; resize: none; outline: none; font-size: 0.9rem; margin-bottom: 12px; }
 
         .upload-area { border: 2px dashed #333; background: #000; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 12px; position: relative; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -75,7 +80,14 @@ HTML_TEMPLATE = """
             <!-- AI Chat Panel -->
             <div id="chatPanel" class="panel active">
                 <canvas id="avatarCanvas"></canvas>
-                <div class="subtitle-box" id="subBox">Ask or speak anything to Tringo AI!</div>
+                
+                <div class="greeting-box" id="greetingContainer">
+                    <div class="greeting-text" id="userNameLabel">Hi Jamshed,</div>
+                    <div class="sub-greeting">Ask or speak anything to Tringo AI!</div>
+                </div>
+
+                <div class="subtitle-box" id="subBox" style="display:none;"></div>
+
                 <div class="chat-bar">
                     <input type="text" id="msgInput" placeholder="Message Tringo AI..." onkeypress="onKey(event)">
                     <button onclick="sendChat()">Send</button>
@@ -126,6 +138,20 @@ HTML_TEMPLATE = """
 
     <script>
         let uploadedImgBase64 = null;
+
+        // User Login Greeting Handler
+        function setUserGreeting(nameOrEmail) {
+            let firstName = "User";
+            if (nameOrEmail) {
+                let clean = nameOrEmail.split('@')[0];
+                clean = clean.split('.')[0].split('_')[0];
+                firstName = clean.charAt(0).toUpperCase() + clean.slice(1);
+            }
+            document.getElementById('userNameLabel').textContent = "Hi " + firstName + ",";
+        }
+
+        // Example trigger (Pass dynamic username or email here)
+        setUserGreeting("Jamshed");
 
         function changeTab(tab) {
             document.getElementById('tabChat').classList.remove('active');
@@ -226,7 +252,7 @@ HTML_TEMPLATE = """
             }
         }
 
-        /* Meta AI Style Dynamic Animated Ring Logo */
+        /* Tringo AI Icon Matching Rotating Spiral Galaxy Animation */
         const canvas = document.getElementById('avatarCanvas');
         const ctx = canvas.getContext('2d');
         let rotationAngle = 0;
@@ -236,58 +262,62 @@ HTML_TEMPLATE = """
             canvas.height = canvas.parentElement.clientHeight;
         }
 
-        function drawMetaAiRing() {
+        function drawTringoSpiralIcon() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Positioning slightly higher than center
             const centerX = canvas.width / 2;
-            const centerY = (canvas.height / 2) - 50; 
+            const centerY = (canvas.height / 2) - 60; 
             
-            const numTeardrops = 8;
-            const ringRadius = 42; 
-            
-            rotationAngle += 0.025; // Smooth rotation speed
+            rotationAngle += 0.03; // Rotation speed
 
             ctx.save();
             ctx.translate(centerX, centerY);
             ctx.rotate(rotationAngle);
 
-            for (let i = 0; i < numTeardrops; i++) {
-                const angle = (i * (Math.PI * 2 / numTeardrops));
-                const x = Math.cos(angle) * ringRadius;
-                const y = Math.sin(angle) * ringRadius;
+            const numArms = 5;
+            const particlesPerArm = 18;
 
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.rotate(angle + Math.PI / 2);
+            for (let arm = 0; arm < numArms; arm++) {
+                const baseAngle = (arm * Math.PI * 2) / numArms;
 
-                // Meta AI Style gradient colors (Purple to Blue / Pink accent)
-                const hue = (i * 35 + rotationAngle * 50) % 360;
-                ctx.fillStyle = `hsl(${hue}, 85%, 65%)`;
+                for (let i = 0; i < particlesPerArm; i++) {
+                    const distance = i * 4.5 + 8;
+                    const spiralAngle = baseAngle + (i * 0.15);
 
-                ctx.beginPath();
-                ctx.ellipse(0, 0, 8, 16, 0, 0, Math.PI * 2);
-                ctx.shadowColor = `hsl(${hue}, 85%, 65%)`;
-                ctx.shadowBlur = 12;
-                ctx.fill();
+                    const x = Math.cos(spiralAngle) * distance;
+                    const y = Math.sin(spiralAngle) * distance;
 
-                ctx.restore();
+                    const radius = 2 + (i * 0.35);
+
+                    // Purple to Magenta Neon Colors matching Tringo Icon
+                    const hue = 270 + (i * 4); 
+                    ctx.fillStyle = `hsl(${hue}, 90%, 65%)`;
+                    ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
+                    ctx.shadowBlur = 10;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             }
 
             ctx.restore();
-            requestAnimationFrame(drawMetaAiRing);
+            requestAnimationFrame(drawTringoSpiralIcon);
         }
 
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
-        drawMetaAiRing();
+        drawTringoSpiralIcon();
 
         async function sendChat() {
             const inp = document.getElementById('msgInput');
             const val = inp.value;
             if (!val.trim()) return;
             
-            document.getElementById('subBox').textContent = "You: " + val;
+            document.getElementById('greetingContainer').style.display = 'none';
+            const subBox = document.getElementById('subBox');
+            subBox.style.display = 'block';
+            subBox.textContent = "You: " + val;
             inp.value = '';
 
             try {
@@ -297,9 +327,9 @@ HTML_TEMPLATE = """
                     body: JSON.stringify({ message: val })
                 });
                 const data = await res.json();
-                document.getElementById('subBox').textContent = "Tringo: " + (data.response || "No response");
+                subBox.textContent = "Tringo: " + (data.response || "No response");
             } catch (e) {
-                document.getElementById('subBox').textContent = "Connection error!";
+                subBox.textContent = "Connection error!";
             }
         }
 
@@ -387,4 +417,3 @@ def generate_3d():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
