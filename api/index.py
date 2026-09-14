@@ -1,4 +1,4 @@
-# Fixed visibility logic for greeting box and chat bar
+# Live Voice-to-Voice Chat + 3D Video Studio
 from flask import Flask, request, jsonify, render_template_string
 import os
 import requests
@@ -22,7 +22,7 @@ HTML_TEMPLATE = """
 
         .app-container { display: flex; flex-direction: column; width: 100vw; height: 100vh; background: #050505; }
 
-        /* Navigation Bar */
+        /* Top Nav */
         .top-nav { 
             display: flex; 
             align-items: center; 
@@ -52,42 +52,96 @@ HTML_TEMPLATE = """
             box-shadow: 0 0 10px rgba(208, 55, 253, 0.25);
         }
 
-        /* Content Area */
+        /* Content Areas */
         .main-content { flex: 1; position: relative; width: 100%; height: calc(100vh - 65px); overflow: hidden; }
         .panel { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         .panel.active { display: flex; flex-direction: column; }
 
-        /* AI Chat Panel */
+        /* Live Voice Chat Panel */
         #chatPanel { position: relative; background: #050505; align-items: center; justify-content: center; }
-        
-        .canvas-container {
-            position: absolute;
-            top: 38%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 250px;
-            height: 250px;
+
+        /* Glowing Mic / Voice Orb Container */
+        .voice-orb-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .voice-orb {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #d037fd 0%, #7000ff 100%);
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 0 35px rgba(208, 55, 253, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
         }
 
-        #neonCanvas {
-            width: 100%;
-            height: 100%;
+        .voice-orb svg {
+            width: 50px;
+            height: 50px;
+            fill: #ffffff;
         }
 
-        .greeting-box { position: absolute; top: 62%; left: 0; width: 100%; text-align: center; z-index: 5; }
-        .greeting-text { font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
-        .sub-greeting { font-size: 0.9rem; color: #888888; }
+        /* Listening Animation Pulse */
+        .voice-orb.listening {
+            animation: pulse-ring 1.5s infinite;
+            background: radial-gradient(circle, #2563eb 0%, #00d4ff 100%);
+            box-shadow: 0 0 45px rgba(37, 99, 235, 0.6);
+        }
 
-        .subtitle-box { position: absolute; top: 16px; left: 4%; width: 92%; background: rgba(20, 20, 20, 0.85); border: 1px solid #333; border-radius: 14px; padding: 12px 16px; text-align: center; font-size: 0.9rem; z-index: 5; color: #fff; }
+        .voice-orb.speaking {
+            animation: speak-wave 0.8s infinite alternate;
+            background: radial-gradient(circle, #ff007f 0%, #d037fd 100%);
+            box-shadow: 0 0 50px rgba(255, 0, 127, 0.7);
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 25px rgba(37, 99, 235, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        }
+
+        @keyframes speak-wave {
+            0% { transform: scale(0.95); }
+            100% { transform: scale(1.15); }
+        }
+
+        .status-tag {
+            margin-top: 20px;
+            font-size: 0.95rem;
+            color: #aaaaaa;
+            font-weight: 500;
+        }
+
+        /* Live Subtitles Box */
+        .live-transcript-box {
+            width: 90%;
+            max-width: 450px;
+            min-height: 70px;
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 14px 18px;
+            text-align: center;
+            font-size: 0.95rem;
+            color: #e0e0e0;
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+
         .chat-bar { position: absolute; bottom: 20px; left: 4%; width: 92%; display: flex; gap: 8px; z-index: 5; }
         .chat-bar input { flex: 1; height: 48px; background: #151515; border: 1px solid #333; border-radius: 24px; padding: 0 16px; color: #fff; outline: none; font-size: 0.95rem; }
         .chat-bar input:focus { border-color: #d037fd; }
         .chat-bar button { padding: 0 20px; height: 48px; background: #d037fd; border: none; border-radius: 24px; color: #fff; font-weight: bold; cursor: pointer; }
 
-        /* Studio Panel */
+        /* 3D Studio Panel */
         #studioPanel { overflow-y: auto; padding: 16px; background: #050505; z-index: 10; }
         .studio-box { max-width: 500px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 16px; }
         
@@ -112,30 +166,33 @@ HTML_TEMPLATE = """
 <body>
 
     <div class="app-container">
-        <!-- Navigation Bar -->
+        <!-- Top Nav Bar -->
         <div class="top-nav">
-            <button class="nav-btn active" id="tabChat" onclick="changeTab('chat')">AI Chat</button>
+            <button class="nav-btn active" id="tabChat" onclick="changeTab('chat')">Live Voice Chat</button>
             <button class="nav-btn" id="tabStudio" onclick="changeTab('studio')">3D Video Studio</button>
         </div>
 
         <div class="main-content">
-            <!-- AI Chat Panel -->
+            <!-- Voice Chat Panel -->
             <div id="chatPanel" class="panel active">
                 
-                <div class="canvas-container">
-                    <canvas id="neonCanvas" width="300" height="300"></canvas>
-                </div>
-                
-                <div class="greeting-box" id="greetingContainer">
-                    <div class="greeting-text">Hi Jamshed,</div>
-                    <div class="sub-greeting">Ask or speak anything to Tringo AI!</div>
+                <div class="voice-orb-container">
+                    <div class="voice-orb" id="voiceOrb" onclick="toggleVoiceLive()">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </div>
+                    <div class="status-tag" id="statusTag">Tap icon to speak live</div>
                 </div>
 
-                <div class="subtitle-box" id="subBox" style="display:none;"></div>
+                <div class="live-transcript-box" id="transcriptBox">
+                    Listening or Text responses will appear here...
+                </div>
 
-                <div class="chat-bar" id="mainChatBar">
+                <div class="chat-bar">
                     <input type="text" id="msgInput" placeholder="Message Tringo AI..." onkeypress="onKey(event)">
-                    <button onclick="sendChat()">Send</button>
+                    <button onclick="sendTextChat()">Send</button>
                 </div>
             </div>
 
@@ -182,48 +239,145 @@ HTML_TEMPLATE = """
     </div>
 
     <script>
-        const canvas = document.getElementById('neonCanvas');
-        const ctx = canvas.getContext('2d');
-        let angle = 0;
+        // Live Voice & Speech Synthesis Setup
+        let isListening = false;
+        let recognition = null;
+        let synthesis = window.speechSynthesis;
 
-        function drawVortex() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const numArms = 3;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
 
-            for (let i = 0; i < numArms; i++) {
-                const armAngle = angle + (i * (Math.PI * 2 / numArms));
-                
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.rotate(armAngle);
+            recognition.onstart = () => {
+                isListening = true;
+                const orb = document.getElementById('voiceOrb');
+                orb.className = 'voice-orb listening';
+                document.getElementById('statusTag').textContent = 'Listening...';
+            };
 
-                ctx.beginPath();
-                ctx.moveTo(12, 0);
-                ctx.bezierCurveTo(35, 45, 85, 40, 95, 0);
-                ctx.bezierCurveTo(75, -25, 30, -15, 12, 0);
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
 
-                const grad = ctx.createLinearGradient(0, 0, 90, 0);
-                grad.addColorStop(0, '#e033ff');
-                grad.addColorStop(0.5, '#bd10e0');
-                grad.addColorStop(1, '#7000ff');
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
 
-                ctx.fillStyle = grad;
-                ctx.shadowColor = '#d037fd';
-                ctx.shadowBlur = 22;
-                ctx.fill();
+                if (interimTranscript) {
+                    document.getElementById('transcriptBox').textContent = "You: " + interimTranscript;
+                }
+                if (finalTranscript) {
+                    document.getElementById('transcriptBox').textContent = "You: " + finalTranscript;
+                    processVoiceInput(finalTranscript);
+                }
+            };
 
-                ctx.restore();
-            }
+            recognition.onerror = (e) => {
+                stopVoiceState();
+                document.getElementById('statusTag').textContent = 'Voice error. Tap to retry.';
+            };
 
-            angle += 0.035;
-            requestAnimationFrame(drawVortex);
+            recognition.onend = () => {
+                if (isListening) {
+                    stopVoiceState();
+                }
+            };
+        } else {
+            document.getElementById('statusTag').textContent = 'Voice not supported on this browser.';
         }
 
-        drawVortex();
+        function toggleVoiceLive() {
+            if (!recognition) return alert('Speech recognition not supported in this browser.');
+            if (isListening) {
+                recognition.stop();
+                stopVoiceState();
+            } else {
+                synthesis.cancel(); // Stop speaking if currently talking
+                recognition.start();
+            }
+        }
 
-        let uploadedImgBase64 = null;
+        function stopVoiceState() {
+            isListening = false;
+            const orb = document.getElementById('voiceOrb');
+            orb.className = 'voice-orb';
+            document.getElementById('statusTag').textContent = 'Tap icon to speak live';
+        }
+
+        async function processVoiceInput(userText) {
+            stopVoiceState();
+            document.getElementById('statusTag').textContent = 'Thinking...';
+
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userText })
+                });
+                const data = await res.json();
+                const reply = data.response || "I didn't catch that.";
+
+                document.getElementById('transcriptBox').textContent = "Tringo: " + reply;
+                speakResponse(reply);
+            } catch (err) {
+                document.getElementById('statusTag').textContent = 'Server error!';
+            }
+        }
+
+        function speakResponse(text) {
+            if (!synthesis) return;
+            synthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+
+            const orb = document.getElementById('voiceOrb');
+
+            utterance.onstart = () => {
+                orb.className = 'voice-orb speaking';
+                document.getElementById('statusTag').textContent = 'Tringo Speaking...';
+            };
+
+            utterance.onend = () => {
+                orb.className = 'voice-orb';
+                document.getElementById('statusTag').textContent = 'Tap icon to speak live';
+            };
+
+            synthesis.speak(utterance);
+        }
+
+        async function sendTextChat() {
+            const inp = document.getElementById('msgInput');
+            const val = inp.value.trim();
+            if (!val) return;
+
+            document.getElementById('transcriptBox').textContent = "You: " + val;
+            inp.value = '';
+            document.getElementById('statusTag').textContent = 'Thinking...';
+
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: val })
+                });
+                const data = await res.json();
+                const reply = data.response || "No response";
+
+                document.getElementById('transcriptBox').textContent = "Tringo: " + reply;
+                speakResponse(reply);
+            } catch (e) {
+                document.getElementById('statusTag').textContent = 'Connection error!';
+            }
+        }
 
         function changeTab(tab) {
             const chatPanel = document.getElementById('chatPanel');
@@ -241,6 +395,7 @@ HTML_TEMPLATE = """
                 tabChat.classList.remove('active');
                 chatPanel.style.display = 'none';
                 studioPanel.style.display = 'block';
+                synthesis.cancel();
             }
         }
 
@@ -257,6 +412,8 @@ HTML_TEMPLATE = """
                 document.getElementById('picCard').style.display = 'block';
             }
         }
+
+        let uploadedImgBase64 = null;
 
         function onFilePicked(input) {
             const file = input.files[0];
@@ -298,142 +455,4 @@ HTML_TEMPLATE = """
 
             if (type === 'text') {
                 const txt = document.getElementById('textPromptInput').value;
-                if (!txt.trim()) return alert('Please enter prompt text!');
-                payload.prompt = txt;
-                statusTxt.textContent = 'Generating 3D Animation... Please wait.';
-            } else {
-                if (!uploadedImgBase64) return alert('Please upload an image first!');
-                payload.image = uploadedImgBase64;
-                statusTxt.textContent = 'Animating image into 3D... Please wait.';
-            }
-
-            try {
-                const res = await fetch('/generate-3d', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                loaderRing.style.display = 'none';
-
-                if (data.status === 'success' && data.video_url) {
-                    statusTxt.textContent = 'Completed!';
-                    videoHolder.innerHTML = `<video controls autoplay loop width="100%" style="border-radius:10px;"><source src="${data.video_url}" type="video/mp4"></video>`;
-                } else {
-                    statusTxt.textContent = 'Error: ' + (data.message || 'Generation failed');
-                }
-            } catch (err) {
-                loaderRing.style.display = 'none';
-                statusTxt.textContent = 'Server connection error!';
-            }
-        }
-
-        async function sendChat() {
-            const inp = document.getElementById('msgInput');
-            const val = inp.value;
-            if (!val.trim()) return;
-            
-            document.getElementById('greetingContainer').style.display = 'none';
-            const subBox = document.getElementById('subBox');
-            subBox.style.display = 'block';
-            subBox.textContent = "You: " + val;
-            inp.value = '';
-
-            try {
-                const res = await fetch('/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: val })
-                });
-                const data = await res.json();
-                subBox.textContent = "Tringo: " + (data.response || "No response");
-            } catch (e) {
-                subBox.textContent = "Connection error!";
-            }
-        }
-
-        function onKey(e) { if (e.key === 'Enter') sendChat(); }
-    </script>
-</body>
-</html>
-"""
-
-@app.route('/')
-def home():
-    return render_template_string(HTML_TEMPLATE)
-
-@app.route('/chat', methods=['POST'])
-def chat():
-    data = request.json or {}
-    user_msg = data.get('message', '')
-    
-    if not GEMINI_API_KEY:
-        return jsonify({"response": "Gemini API key is missing in environment variables."})
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-    payload = {
-        "contents": [{"parts": [{"text": user_msg}]}]
-    }
-    
-    try:
-        r = requests.post(url, json=payload, timeout=15)
-        res_data = r.json()
-        if 'candidates' in res_data:
-            reply = res_data['candidates'][0]['content']['parts'][0]['text']
-            return jsonify({"response": reply})
-        else:
-            return jsonify({"response": "API Key Error or Quota Limit."})
-    except Exception as e:
-        return jsonify({"response": f"Connection Exception: {str(e)}"})
-
-@app.route('/generate-3d', methods=['POST'])
-def generate_3d():
-    data = request.json or {}
-    gen_type = data.get('type')
-    
-    headers = {
-        "Authorization": f"Token {REPLICATE_API_TOKEN}",
-        "Content-Type": "application/json"
-    }
-
-    try:
-        if gen_type == 'text':
-            prompt = data.get('prompt', '3D animation scene')
-            payload = {
-                "version": "3f04576467027955424075957e893da7f5b7816cd7669f464c968256923e15a3",
-                "input": {"prompt": prompt}
-            }
-        else:
-            image_b64 = data.get('image')
-            payload = {
-                "version": "3f04576467027955424075957e893da7f5b7816cd7669f464c968256923e15a3",
-                "input": {"input_image": image_b64}
-            }
-
-        response = requests.post("https://api.replicate.com/v1/predictions", json=payload, headers=headers)
-        res_data = response.json()
-
-        if "id" not in res_data:
-            return jsonify({"status": "error", "message": res_data.get("detail", "Failed to start generation")}), 400
-
-        prediction_id = res_data["id"]
-        poll_url = f"https://api.replicate.com/v1/predictions/{prediction_id}"
-        
-        for _ in range(30):
-            time.sleep(3)
-            poll_res = requests.get(poll_url, headers=headers).json()
-            if poll_res.get("status") == "succeeded":
-                output_url = poll_res.get("output")
-                if isinstance(output_url, list):
-                    output_url = output_url[0]
-                return jsonify({"status": "success", "video_url": output_url})
-            elif poll_res.get("status") == "failed":
-                return jsonify({"status": "error", "message": "3D Generation failed."}), 500
-
-        return jsonify({"status": "error", "message": "Rendering timed out."}), 504
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True)
-    
+                if (!txt.trim()) return alert('Plea
