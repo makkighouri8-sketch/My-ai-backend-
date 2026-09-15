@@ -54,8 +54,8 @@ HTML_TEMPLATE = """
 
         .chat-display { width: 100%; max-width: 500px; min-height: 50px; max-height: 160px; overflow-y: auto; text-align: center; font-size: 0.95rem; color: #cccccc; line-height: 1.4; padding: 0 10px; margin-bottom: 20px; }
 
-        /* Input Bar */
-        .input-wrapper {
+        /* FIXED BOTTOM INPUT BAR CONTAINER */
+        .bottom-bar-container {
             position: absolute;
             bottom: 24px;
             left: 50%;
@@ -64,11 +64,19 @@ HTML_TEMPLATE = """
             max-width: 500px;
             display: flex;
             align-items: center;
+            gap: 10px;
+            z-index: 5;
+        }
+
+        /* Compact Inner Input Capsule Box */
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
             background: #121212;
             border: 1px solid #282828;
             border-radius: 30px;
-            padding: 4px 6px 4px 18px;
-            z-index: 5;
+            padding: 4px 6px 4px 16px;
         }
         .input-wrapper input {
             flex: 1;
@@ -81,12 +89,10 @@ HTML_TEMPLATE = """
         }
         .input-wrapper input::placeholder { color: #555555; }
 
-        .input-actions { display: flex; align-items: center; gap: 8px; }
-
-        /* Live Wave Trigger Button */
+        /* Wave Live Voice Trigger inside Box */
         .live-wave-trigger {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             background: linear-gradient(135deg, #a855f7, #6366f1);
             border: none;
@@ -94,11 +100,27 @@ HTML_TEMPLATE = """
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+            flex-shrink: 0;
         }
-        .live-wave-trigger svg { width: 20px; height: 20px; fill: #ffffff; }
+        .live-wave-trigger svg { width: 18px; height: 18px; fill: #ffffff; }
 
-        .send-btn { padding: 0 16px; height: 38px; background: #222222; border: 1px solid #333; border-radius: 20px; color: #ffffff; font-weight: bold; font-size: 0.85rem; cursor: pointer; }
+        /* External Send Button (Outside Box) */
+        .send-btn-outside {
+            height: 44px;
+            padding: 0 20px;
+            background: #222222;
+            border: 1px solid #333333;
+            border-radius: 24px;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         /* FULLSCREEN GEMINI STYLE LIVE OVERLAY */
         .gemini-overlay {
@@ -124,7 +146,6 @@ HTML_TEMPLATE = """
         .brand-tag { font-size: 0.9rem; font-weight: 700; color: #a855f7; letter-spacing: 1px; text-transform: uppercase; }
         .close-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; }
 
-        /* CENTER GEMINI FLUID NEON BLOB */
         .gemini-blob-container {
             position: relative;
             width: 220px;
@@ -172,7 +193,6 @@ HTML_TEMPLATE = """
 
         .live-status { font-size: 1.1rem; color: #ffffff; text-align: center; max-width: 90%; min-height: 50px; font-weight: 500; }
 
-        /* GEMINI BOTTOM GLOW BAR WITH SOUND WAVES */
         .bottom-glow-bar {
             width: 92%;
             max-width: 450px;
@@ -188,7 +208,6 @@ HTML_TEMPLATE = """
             backdrop-filter: blur(15px);
         }
 
-        /* SOUND WAVE BARS ANIMATION */
         .wave-bars {
             display: flex;
             align-items: center;
@@ -267,17 +286,17 @@ HTML_TEMPLATE = """
                 Tap the wave button in the input bar to start Gemini-style Live Voice Chat!
             </div>
 
-            <!-- Input Bar -->
-            <div class="input-wrapper">
-                <input type="text" id="msgInput" placeholder="Message Tringo AI..." onkeypress="onKey(event)">
-                <div class="input-actions">
+            <!-- Outer Container for Input and External Send Button -->
+            <div class="bottom-bar-container">
+                <div class="input-wrapper">
+                    <input type="text" id="msgInput" placeholder="Message Tringo AI..." onkeypress="onKey(event)">
                     <button class="live-wave-trigger" onclick="openLiveVoiceMode()" title="Live Voice Chat">
                         <svg viewBox="0 0 24 24">
                             <path d="M12 3v18M8 6v12M4 9v6M16 6v12M20 9v6" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
                         </svg>
                     </button>
-                    <button class="send-btn" onclick="sendTextChat()">Send</button>
                 </div>
+                <button class="send-btn-outside" onclick="sendTextChat()">Send</button>
             </div>
         </div>
 
@@ -288,14 +307,12 @@ HTML_TEMPLATE = """
                 <button class="close-btn" onclick="closeLiveVoiceMode()">✕</button>
             </div>
 
-            <!-- Fluid Morphing Neon Blob -->
             <div class="gemini-blob-container">
                 <div class="gemini-blob" id="geminiBlob"></div>
             </div>
 
             <div class="live-status" id="liveStatus">Listening... Speak now!</div>
 
-            <!-- GEMINI BOTTOM CAPSULE SOUND WAVES -->
             <div class="bottom-glow-bar">
                 <div class="wave-bars">
                     <div class="bar"></div>
@@ -470,4 +487,3 @@ def chat():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
