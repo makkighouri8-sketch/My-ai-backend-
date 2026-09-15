@@ -1,8 +1,3 @@
-from flask import Flask, render_template_string
-
-app = Flask(__name__)
-
-HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,13 +15,80 @@ HTML_TEMPLATE = """
         .nav-btn { flex: 1; padding: 10px; background: #121212; border: 1px solid #262626; border-radius: 20px; color: #888; font-weight: 600; cursor: pointer; text-align: center; font-size: 0.9rem; transition: all 0.2s; }
         .nav-btn.active { color: #fff; background: #1a1a1a; border-color: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
 
-        .tab-content { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: flex-start; padding: 16px; overflow-y: auto; padding-bottom: 90px; }
+        .tab-content { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: flex-start; padding: 16px; overflow-y: auto; padding-bottom: 90px; position: relative; }
         .tab-content.active-tab { display: flex; }
 
         .greeting { font-size: 1.4rem; font-weight: 700; margin-top: 10px; margin-bottom: 4px; text-align: center; }
         .subtext { font-size: 0.85rem; color: #777; margin-bottom: 20px; text-align: center; }
-        .chat-box { width: 100%; max-width: 500px; color: #ccc; text-align: center; margin-bottom: 20px; font-size: 0.95rem; word-break: break-word; }
+        .chat-box { width: 100%; max-width: 500px; color: #ccc; text-align: center; margin-bottom: 20px; font-size: 0.95rem; word-break: break-word; z-index: 2; }
 
+        /* CIRCULAR NEON VOICE WAVES OVERLAY */
+        .live-overlay {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+        .live-overlay.active { display: flex; }
+
+        .neon-circle-container {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .neon-wave {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid #a855f7;
+            box-shadow: 0 0 15px #a855f7, inset 0 0 15px #a855f7;
+            animation: neon-pulse 2s infinite ease-out;
+            opacity: 0;
+        }
+
+        .neon-wave:nth-child(1) { width: 60px; height: 60px; animation-delay: 0s; }
+        .neon-wave:nth-child(2) { width: 100px; height: 100px; animation-delay: 0.6s; }
+        .neon-wave:nth-child(3) { width: 140px; height: 140px; animation-delay: 1.2s; }
+
+        .center-glow-orb {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a855f7, #d037fd);
+            box-shadow: 0 0 25px #d037fd;
+            z-index: 2;
+            animation: orb-bounce 1.2s infinite alternate ease-in-out;
+        }
+
+        @keyframes neon-pulse {
+            0% { transform: scale(0.4); opacity: 0.9; }
+            80% { opacity: 0.4; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        @keyframes orb-bounce {
+            0% { transform: scale(0.95); box-shadow: 0 0 15px #a855f7; }
+            100% { transform: scale(1.1); box-shadow: 0 0 30px #d037fd; }
+        }
+
+        .live-status-text {
+            margin-top: 25px;
+            font-size: 0.9rem;
+            color: #d037fd;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 8px rgba(208, 55, 253, 0.6);
+        }
+
+        /* 3D STUDIO CARDS */
         .studio-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 20px; }
         
         .studio-card { 
@@ -75,7 +137,6 @@ HTML_TEMPLATE = """
         }
         .studio-input:focus { border-color: #a855f7; }
 
-        /* UPLOAD CONTAINER & CROSS BUTTON */
         .upload-area {
             border: 2px dashed #2a2a2a;
             border-radius: 12px;
@@ -151,6 +212,7 @@ HTML_TEMPLATE = """
         }
         .gen-btn:active { opacity: 0.8; }
 
+        /* BOTTOM INPUT BAR */
         .bottom-bar { 
             position: fixed; 
             bottom: 12px; 
@@ -203,23 +265,11 @@ HTML_TEMPLATE = """
             justify-content: center; 
             cursor: pointer; 
             flex-shrink: 0; 
-            position: relative;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
-        .mic-btn svg { width: 16px; height: 16px; fill: #fff; z-index: 2; }
-
-        .mic-btn.active {
-            background: #222;
-            border-color: #a855f7;
-            animation: mic-wave-pulse 1.2s infinite ease-in-out;
-        }
-
-        @keyframes mic-wave-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.8), 0 0 0 0 rgba(208, 55, 253, 0.5); }
-            70% { box-shadow: 0 0 0 10px rgba(168, 85, 247, 0), 0 0 0 20px rgba(208, 55, 253, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0), 0 0 0 0 rgba(208, 55, 253, 0); }
-        }
+        .mic-btn svg { width: 16px; height: 16px; fill: #fff; }
+        .mic-btn.active { border-color: #a855f7; background: #333; }
 
         .wave-btn { 
             width: 32px; 
@@ -237,14 +287,8 @@ HTML_TEMPLATE = """
         .wave-btn svg { width: 16px; height: 16px; stroke: #fff; }
 
         .wave-btn.listening {
-            animation: pulse-wave 1.2s infinite ease-in-out;
             background: linear-gradient(135deg, #d037fd, #a855f7);
-        }
-
-        @keyframes pulse-wave {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(208, 55, 253, 0.7); }
-            50% { transform: scale(1.15); box-shadow: 0 0 0 10px rgba(208, 55, 253, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(208, 55, 253, 0); }
+            box-shadow: 0 0 12px rgba(208, 55, 253, 0.8);
         }
 
         .send-btn { width: 38px; height: 38px; background: #222; border: 1px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; margin-bottom: 2px; }
@@ -262,6 +306,17 @@ HTML_TEMPLATE = """
         <div class="greeting">Hi Jamshed,</div>
         <div class="subtext">Ask or speak anything to Tringo AI!</div>
         <div class="chat-box" id="chatDisplay">Type or speak your prompt...</div>
+
+        <!-- NEON GOAL/CIRCULAR WAVES OVERLAY -->
+        <div class="live-overlay" id="liveOverlay">
+            <div class="neon-circle-container">
+                <div class="neon-wave"></div>
+                <div class="neon-wave"></div>
+                <div class="neon-wave"></div>
+                <div class="center-glow-orb"></div>
+            </div>
+            <div class="live-status-text">Tringo AI Listening...</div>
+        </div>
 
         <div class="bottom-bar">
             <div class="input-box">
@@ -373,10 +428,14 @@ HTML_TEMPLATE = """
             input.focus();
         }
 
+        /* TOGGLE CIRCULAR NEON VOICE WAVES */
         function toggleLiveWave() {
             const waveBtn = document.getElementById('waveBtn');
+            const liveOverlay = document.getElementById('liveOverlay');
+            
             isWaveActive = !isWaveActive;
             waveBtn.classList.toggle('listening', isWaveActive);
+            liveOverlay.classList.toggle('active', isWaveActive);
         }
 
         function sendMsg() {
@@ -389,7 +448,6 @@ HTML_TEMPLATE = """
             }
         }
 
-        /* PHOTO UPLOAD & REMOVE WITH CROSS BUTTON */
         function triggerUpload(e) {
             if (e.target.classList.contains('remove-btn')) return;
             document.getElementById('imgUpload').click();
@@ -421,10 +479,3 @@ HTML_TEMPLATE = """
     </script>
 </body>
 </html>
-"""
-
-@app.route('/')
-def home():
-    return render_template_string(HTML_TEMPLATE)
-
-app = app
