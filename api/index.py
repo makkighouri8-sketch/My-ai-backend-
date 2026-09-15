@@ -16,12 +16,10 @@ HTML_TEMPLATE = """
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { width: 100vw; height: 100vh; background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; display: flex; flex-direction: column; }
         
-        /* TOP NAVIGATION TABS */
         .top-nav { display: flex; padding: 12px; gap: 10px; background: #000; z-index: 10; border-bottom: 1px solid #1a1a1a; }
         .nav-btn { flex: 1; padding: 10px; background: #121212; border: 1px solid #262626; border-radius: 20px; color: #888; font-weight: 600; cursor: pointer; text-align: center; font-size: 0.9rem; transition: all 0.2s; }
         .nav-btn.active { color: #fff; background: #1a1a1a; border-color: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
 
-        /* TAB CONTENTS */
         .tab-content { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: flex-start; padding: 16px; overflow-y: auto; padding-bottom: 90px; }
         .tab-content.active-tab { display: flex; }
 
@@ -29,7 +27,6 @@ HTML_TEMPLATE = """
         .subtext { font-size: 0.85rem; color: #777; margin-bottom: 20px; text-align: center; }
         .chat-box { width: 100%; max-width: 500px; color: #ccc; text-align: center; margin-bottom: 20px; font-size: 0.95rem; word-break: break-word; }
 
-        /* 3D STUDIO CARDS */
         .studio-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 20px; }
         
         .studio-card { 
@@ -45,7 +42,22 @@ HTML_TEMPLATE = """
         }
         .studio-card:focus-within { border-color: #a855f7; }
 
-        .card-header { display: flex; align-items: center; gap: 10px; }
+        .card-header { display: flex; align-items: center; gap: 12px; }
+        
+        /* OUTLINE ICONS */
+        .header-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            flex-shrink: 0;
+        }
+        .header-icon svg { width: 20px; height: 20px; stroke: #a855f7; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
         .card-title { font-weight: 700; font-size: 1.05rem; color: #fff; }
         .card-desc { font-size: 0.8rem; color: #777; line-height: 1.3; }
 
@@ -63,10 +75,11 @@ HTML_TEMPLATE = """
         }
         .studio-input:focus { border-color: #a855f7; }
 
+        /* UPLOAD AREA WITH IMAGE PREVIEW */
         .upload-area {
             border: 2px dashed #2a2a2a;
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px;
             text-align: center;
             background: #121212;
             cursor: pointer;
@@ -74,11 +87,23 @@ HTML_TEMPLATE = """
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 6px;
+            min-height: 120px;
+            position: relative;
+            overflow: hidden;
         }
         .upload-area:hover { border-color: #a855f7; background: #161616; }
-        .upload-area svg { width: 28px; height: 28px; fill: #888; }
+        .upload-icon-svg { width: 28px; height: 28px; stroke: #888; fill: none; stroke-width: 2; }
         .upload-text { font-size: 0.8rem; color: #888; }
+
+        .img-preview {
+            width: 100%;
+            max-height: 180px;
+            object-fit: contain;
+            border-radius: 8px;
+            display: none;
+        }
 
         .gen-btn {
             background: linear-gradient(135deg, #a855f7, #d037fd);
@@ -98,7 +123,6 @@ HTML_TEMPLATE = """
         }
         .gen-btn:active { opacity: 0.8; }
 
-        /* BOTTOM CHAT INPUT BAR */
         .bottom-bar { 
             position: fixed; 
             bottom: 12px; 
@@ -232,14 +256,16 @@ HTML_TEMPLATE = """
 
     <!-- 3D STUDIO TAB -->
     <div class="tab-content" id="studioTab">
-        <div class="greeting">✨ 3D Studio Generator</div>
+        <div class="greeting">3D Studio Generator</div>
         <div class="subtext">Generate high quality 3D Videos & Animations</div>
 
         <div class="studio-container">
             <!-- SECTION 1: 3D VIDEO CREATOR -->
             <div class="studio-card">
                 <div class="card-header">
-                    <span style="font-size:1.4rem;">🎥</span>
+                    <div class="header-icon">
+                        <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                    </div>
                     <div>
                         <div class="card-title">3D Video Generator</div>
                         <div class="card-desc">Create 3D cinematic videos from text prompt</div>
@@ -254,7 +280,9 @@ HTML_TEMPLATE = """
             <!-- SECTION 2: PIC TO 3D ANIMATION -->
             <div class="studio-card">
                 <div class="card-header">
-                    <span style="font-size:1.4rem;">🖼️</span>
+                    <div class="header-icon">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </div>
                     <div>
                         <div class="card-title">Pic to 3D Animation</div>
                         <div class="card-desc">Convert flat photos into 3D animated motions</div>
@@ -262,9 +290,10 @@ HTML_TEMPLATE = """
                 </div>
                 
                 <input type="file" id="imgUpload" accept="image/*" style="display:none;" onchange="previewImage(this)">
-                <div class="upload-area" onclick="document.getElementById('imgUpload').click()">
-                    <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
-                    <div class="upload-text" id="uploadStatus">Click or tap to upload photo</div>
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('imgUpload').click()">
+                    <svg class="upload-icon-svg" id="uploadIcon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <div class="upload-text" id="uploadText">Click or tap to upload photo</div>
+                    <img id="imgPreview" class="img-preview" alt="Preview">
                 </div>
 
                 <textarea class="studio-input" rows="2" placeholder="Optional motion instructions (e.g. Make hair blow in the wind, add 3D camera pan)"></textarea>
@@ -327,9 +356,18 @@ HTML_TEMPLATE = """
             }
         }
 
+        /* LIVE PHOTO PREVIEW */
         function previewImage(input) {
             if (input.files && input.files[0]) {
-                document.getElementById('uploadStatus').textContent = "Selected: " + input.files[0].name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('imgPreview');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    document.getElementById('uploadIcon').style.display = 'none';
+                    document.getElementById('uploadText').style.display = 'none';
+                }
+                reader.readAsDataURL(input.files[0]);
             }
         }
     </script>
