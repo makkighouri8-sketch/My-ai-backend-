@@ -55,17 +55,17 @@ HTML_TEMPLATE = """
 
         .chat-display { width: 100%; max-width: 480px; min-height: 50px; max-height: 160px; overflow-y: auto; text-align: center; font-size: 0.95rem; color: #cccccc; line-height: 1.4; padding: 0 10px; margin-bottom: 20px; }
 
-        /* BOTTOM INPUT CONTAINER */
+        /* STRICT BOTTOM BAR CONTAINER - FIT TO SCREEN */
         .bottom-bar-container {
             position: absolute;
             bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 95%;
-            max-width: 460px;
+            left: 0;
+            right: 0;
+            width: 100%;
+            padding: 0 12px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             z-index: 5;
         }
 
@@ -77,8 +77,8 @@ HTML_TEMPLATE = """
             background: #121212;
             border: 1px solid #282828;
             border-radius: 30px;
-            padding: 4px 6px 4px 14px;
-            gap: 6px;
+            padding: 3px 6px 3px 12px;
+            gap: 4px;
             min-width: 0;
         }
         .input-wrapper input {
@@ -87,16 +87,16 @@ HTML_TEMPLATE = """
             border: none;
             outline: none;
             color: #ffffff;
-            font-size: 0.9rem;
-            height: 42px;
+            font-size: 0.85rem;
+            height: 40px;
             min-width: 0;
         }
         .input-wrapper input::placeholder { color: #555555; }
 
-        /* Mic Button for Voice to Text */
+        /* Voice-to-Text Mic Icon */
         .dictate-mic-btn {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background: #1e1e1e;
             border: 1px solid #333333;
@@ -107,12 +107,12 @@ HTML_TEMPLATE = """
             flex-shrink: 0;
         }
         .dictate-mic-btn.recording { background: #ff2a5f; border-color: #ff2a5f; }
-        .dictate-mic-btn svg { width: 18px; height: 18px; fill: #ffffff; }
+        .dictate-mic-btn svg { width: 16px; height: 16px; fill: #ffffff; }
 
         /* Live Wave Trigger inside Box */
         .live-wave-trigger {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             background: linear-gradient(135deg, #a855f7, #6366f1);
             border: none;
@@ -125,23 +125,21 @@ HTML_TEMPLATE = """
         }
         .live-wave-trigger svg { width: 16px; height: 16px; fill: #ffffff; }
 
-        /* Compact Send Button Outside Box */
+        /* Compact Send Icon Button Outside Box */
         .send-btn-outside {
-            height: 42px;
-            padding: 0 14px;
+            width: 40px;
+            height: 40px;
             background: #222222;
             border: 1px solid #333333;
-            border-radius: 22px;
+            border-radius: 50%;
             color: #ffffff;
-            font-weight: bold;
-            font-size: 0.85rem;
             cursor: pointer;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            white-space: nowrap;
         }
+        .send-btn-outside svg { width: 18px; height: 18px; fill: #ffffff; margin-left: 2px; }
 
         /* FULLSCREEN GEMINI STYLE LIVE OVERLAY */
         .gemini-overlay {
@@ -267,14 +265,14 @@ HTML_TEMPLATE = """
             <div class="sub-text">Ask or speak anything to Tringo AI!</div>
 
             <div class="chat-display" id="chatDisplay">
-                Tap the mic icon to dictate text, or the wave icon for Gemini Live Voice Chat!
+                Tap mic to dictate text, or wave button for Gemini Live Chat!
             </div>
 
             <div class="bottom-bar-container">
                 <div class="input-wrapper">
                     <input type="text" id="msgInput" placeholder="Message Tringo AI..." onkeypress="onKey(event)">
                     
-                    <!-- Voice to Text Mic Button -->
+                    <!-- 1. Voice to Text Mic Button -->
                     <button class="dictate-mic-btn" id="dictateBtn" onclick="toggleDictation()" title="Voice to Text">
                         <svg viewBox="0 0 24 24">
                             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
@@ -282,14 +280,20 @@ HTML_TEMPLATE = """
                         </svg>
                     </button>
 
-                    <!-- Live Voice Wave Button -->
+                    <!-- 2. Live Voice Wave Button -->
                     <button class="live-wave-trigger" onclick="openLiveVoiceMode()" title="Live Voice Chat">
                         <svg viewBox="0 0 24 24">
                             <path d="M12 3v18M8 6v12M4 9v6M16 6v12M20 9v6" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
                         </svg>
                     </button>
                 </div>
-                <button class="send-btn-outside" onclick="sendTextChat()">Send</button>
+
+                <!-- 3. Compact Send Arrow Button Outside -->
+                <button class="send-btn-outside" onclick="sendTextChat()" title="Send">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -474,10 +478,4 @@ HTML_TEMPLATE = """
 
             utterance.onend = () => {
                 if (isLiveActive) {
-                    overlay.className = 'gemini-overlay active listening';
-                    document.getElementById('liveStatus').textContent = "Listening again...";
-                    liveRecognition.start();
-                }
-            };
-
-            syn
+                    overlay.className = 'gemi
