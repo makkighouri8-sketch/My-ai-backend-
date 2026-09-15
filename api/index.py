@@ -27,7 +27,7 @@ HTML_TEMPLATE = """
         .subtext { font-size: 0.85rem; color: #666; margin-bottom: 20px; text-align: center; }
         .chat-box { width: 100%; max-width: 500px; color: #ccc; text-align: center; margin-bottom: 20px; font-size: 0.95rem; word-break: break-word; }
 
-        /* BOTTOM BAR STYLES */
+        /* BOTTOM BAR */
         .bottom-bar { 
             position: fixed; 
             bottom: 12px; 
@@ -69,11 +69,44 @@ HTML_TEMPLATE = """
             overflow-y: auto; 
         }
 
-        .mic-btn { width: 30px; height: 30px; border-radius: 50%; background: #222; border: 1px solid #444; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-        .mic-btn.active { background: #ff2a5f; border-color: #ff2a5f; }
-        .mic-btn svg { width: 16px; height: 16px; fill: #fff; }
+        /* MIC BUTTON WITH PURPLE WAVE ANIMATION */
+        .mic-btn { 
+            width: 30px; 
+            height: 30px; 
+            border-radius: 50%; 
+            background: #222; 
+            border: 1px solid #444; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            flex-shrink: 0; 
+            position: relative;
+            transition: all 0.3s ease;
+        }
 
-        /* LIVE WAVE ANIMATION BUTTON */
+        .mic-btn svg { width: 16px; height: 16px; fill: #fff; z-index: 2; }
+
+        /* NO RED COLOR - ONLY PURPLE AUDIO WAVES */
+        .mic-btn.active {
+            background: #222;
+            border-color: #a855f7;
+            animation: mic-wave-pulse 1.2s infinite ease-in-out;
+        }
+
+        @keyframes mic-wave-pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.8), 0 0 0 0 rgba(208, 55, 253, 0.5);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(168, 85, 247, 0), 0 0 0 20px rgba(208, 55, 253, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(168, 85, 247, 0), 0 0 0 0 rgba(208, 55, 253, 0);
+            }
+        }
+
+        /* LIVE VOICE WAVE BUTTON */
         .wave-btn { 
             width: 32px; 
             height: 32px; 
@@ -89,11 +122,9 @@ HTML_TEMPLATE = """
         }
         .wave-btn svg { width: 16px; height: 16px; stroke: #fff; }
 
-        /* MIC WAVES PULSE ANIMATION */
         .wave-btn.listening {
             animation: pulse-wave 1.2s infinite ease-in-out;
             background: linear-gradient(135deg, #d037fd, #a855f7);
-            box-shadow: 0 0 15px rgba(208, 55, 253, 0.8);
         }
 
         @keyframes pulse-wave {
@@ -121,7 +152,7 @@ HTML_TEMPLATE = """
             <div class="input-box">
                 <textarea id="msgInput" rows="1" placeholder="Message Tringo AI..." oninput="autoResize(this)"></textarea>
                 
-                <!-- Mic Icon (Voice to Text) -->
+                <!-- Mic Icon (Voice to Text with Wave Effect) -->
                 <button class="mic-btn" id="micBtn" onclick="startDictation(event)" title="Voice to Text">
                     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </button>
@@ -158,9 +189,9 @@ HTML_TEMPLATE = """
             textarea.style.height = (textarea.scrollHeight > 120 ? 120 : textarea.scrollHeight) + 'px';
         }
 
-        /* Voice Dictation (Keyboard Keep-Alive) */
+        /* Voice Dictation with Purple Sound Wave Rings */
         function startDictation(event) {
-            if (event) event.preventDefault(); // Keyboard close hone se roknay ke liye
+            if (event) event.preventDefault();
             
             const input = document.getElementById('msgInput');
             const micBtn = document.getElementById('micBtn');
@@ -173,7 +204,7 @@ HTML_TEMPLATE = """
             const rec = new SR();
 
             rec.onstart = () => {
-                micBtn.classList.add('active');
+                micBtn.classList.add('active'); // Activates Purple Wave Animation
             };
 
             rec.onresult = (e) => { 
@@ -182,15 +213,14 @@ HTML_TEMPLATE = """
             };
 
             rec.onend = () => {
-                micBtn.classList.remove('active');
-                input.focus(); // Textarea par dobara focus focus rakhega
+                micBtn.classList.remove('active'); // Stops Animation
+                input.focus();
             };
 
             rec.start();
-            input.focus(); // Instant focus keep-alive
+            input.focus();
         }
 
-        /* Live Wave Animation Toggle */
         function toggleLiveWave() {
             const waveBtn = document.getElementById('waveBtn');
             isWaveActive = !isWaveActive;
@@ -221,3 +251,4 @@ def home():
     return render_template_string(HTML_TEMPLATE)
 
 app = app
+
