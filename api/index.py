@@ -44,7 +44,7 @@ HTML_TEMPLATE = """
 
         .card-header { display: flex; align-items: center; gap: 12px; }
         
-        /* OUTLINE ICONS */
+        /* WHITE OUTLINE ICONS */
         .header-icon {
             width: 32px;
             height: 32px;
@@ -52,11 +52,11 @@ HTML_TEMPLATE = """
             align-items: center;
             justify-content: center;
             border-radius: 8px;
-            background: rgba(168, 85, 247, 0.1);
-            border: 1px solid rgba(168, 85, 247, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             flex-shrink: 0;
         }
-        .header-icon svg { width: 20px; height: 20px; stroke: #a855f7; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .header-icon svg { width: 20px; height: 20px; stroke: #ffffff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
         .card-title { font-weight: 700; font-size: 1.05rem; color: #fff; }
         .card-desc { font-size: 0.8rem; color: #777; line-height: 1.3; }
@@ -75,7 +75,7 @@ HTML_TEMPLATE = """
         }
         .studio-input:focus { border-color: #a855f7; }
 
-        /* UPLOAD AREA WITH IMAGE PREVIEW */
+        /* UPLOAD CONTAINER & CROSS BUTTON */
         .upload-area {
             border: 2px dashed #2a2a2a;
             border-radius: 12px;
@@ -97,13 +97,41 @@ HTML_TEMPLATE = """
         .upload-icon-svg { width: 28px; height: 28px; stroke: #888; fill: none; stroke-width: 2; }
         .upload-text { font-size: 0.8rem; color: #888; }
 
+        .preview-wrapper {
+            position: relative;
+            width: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
         .img-preview {
             width: 100%;
             max-height: 180px;
             object-fit: contain;
             border-radius: 8px;
-            display: none;
         }
+
+        .remove-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 26px;
+            height: 26px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+            transition: background 0.2s;
+        }
+        .remove-btn:hover { background: #ff3b30; border-color: #ff3b30; }
 
         .gen-btn {
             background: linear-gradient(135deg, #a855f7, #d037fd);
@@ -290,10 +318,15 @@ HTML_TEMPLATE = """
                 </div>
                 
                 <input type="file" id="imgUpload" accept="image/*" style="display:none;" onchange="previewImage(this)">
-                <div class="upload-area" id="uploadArea" onclick="document.getElementById('imgUpload').click()">
+                
+                <div class="upload-area" id="uploadArea" onclick="triggerUpload(event)">
                     <svg class="upload-icon-svg" id="uploadIcon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                     <div class="upload-text" id="uploadText">Click or tap to upload photo</div>
-                    <img id="imgPreview" class="img-preview" alt="Preview">
+                    
+                    <div class="preview-wrapper" id="previewWrapper">
+                        <span class="remove-btn" onclick="removeImage(event)" title="Remove Image">✕</span>
+                        <img id="imgPreview" class="img-preview" alt="Preview">
+                    </div>
                 </div>
 
                 <textarea class="studio-input" rows="2" placeholder="Optional motion instructions (e.g. Make hair blow in the wind, add 3D camera pan)"></textarea>
@@ -356,19 +389,34 @@ HTML_TEMPLATE = """
             }
         }
 
-        /* LIVE PHOTO PREVIEW */
+        /* PHOTO UPLOAD & REMOVE WITH CROSS BUTTON */
+        function triggerUpload(e) {
+            if (e.target.classList.contains('remove-btn')) return;
+            document.getElementById('imgUpload').click();
+        }
+
         function previewImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const img = document.getElementById('imgPreview');
                     img.src = e.target.result;
-                    img.style.display = 'block';
+                    document.getElementById('previewWrapper').style.display = 'flex';
                     document.getElementById('uploadIcon').style.display = 'none';
                     document.getElementById('uploadText').style.display = 'none';
                 }
                 reader.readAsDataURL(input.files[0]);
             }
+        }
+
+        function removeImage(e) {
+            e.stopPropagation();
+            const fileInput = document.getElementById('imgUpload');
+            fileInput.value = '';
+            document.getElementById('imgPreview').src = '';
+            document.getElementById('previewWrapper').style.display = 'none';
+            document.getElementById('uploadIcon').style.display = 'block';
+            document.getElementById('uploadText').style.display = 'block';
         }
     </script>
 </body>
