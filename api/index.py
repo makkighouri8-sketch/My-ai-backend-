@@ -12,14 +12,19 @@ HTML_TEMPLATE = """
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>Tringo AI</title>
+    <!-- Three.js & GLTFLoader for 3D Studio -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { width: 100vw; height: 100vh; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; }
         
+        /* TOP NAVIGATION TABS */
         .top-nav { display: flex; padding: 12px; gap: 10px; background: #000; z-index: 10; }
         .nav-btn { flex: 1; padding: 10px; background: #141414; border: 1px solid #262626; border-radius: 20px; color: #888; font-weight: bold; cursor: pointer; text-align: center; }
         .nav-btn.active { color: #fff; background: #222; border-color: #d037fd; }
 
+        /* TAB CONTENTS */
         .tab-content { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: flex-start; padding: 16px; overflow-y: auto; padding-bottom: 90px; }
         .tab-content.active-tab { display: flex; }
 
@@ -27,7 +32,39 @@ HTML_TEMPLATE = """
         .subtext { font-size: 0.85rem; color: #666; margin-bottom: 20px; text-align: center; }
         .chat-box { width: 100%; max-width: 500px; color: #ccc; text-align: center; margin-bottom: 20px; font-size: 0.95rem; word-break: break-word; }
 
-        /* BOTTOM BAR */
+        /* 3D CANVAS & STUDIO LAYOUT */
+        #canvas3d-container {
+            width: 100%;
+            height: 320px;
+            background: #0a0a0a;
+            border-radius: 16px;
+            border: 1px solid #222;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .studio-controls {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 12px;
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+        .action-btn:active { background: #222; }
+
+        /* BOTTOM INPUT BAR */
         .bottom-bar { 
             position: fixed; 
             bottom: 12px; 
@@ -69,7 +106,7 @@ HTML_TEMPLATE = """
             overflow-y: auto; 
         }
 
-        /* MIC BUTTON WITH PURPLE WAVE ANIMATION */
+        /* MIC BUTTON WITH PURPLE WAVES */
         .mic-btn { 
             width: 30px; 
             height: 30px; 
@@ -87,7 +124,6 @@ HTML_TEMPLATE = """
 
         .mic-btn svg { width: 16px; height: 16px; fill: #fff; z-index: 2; }
 
-        /* NO RED COLOR - ONLY PURPLE AUDIO WAVES */
         .mic-btn.active {
             background: #222;
             border-color: #a855f7;
@@ -95,18 +131,11 @@ HTML_TEMPLATE = """
         }
 
         @keyframes mic-wave-pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.8), 0 0 0 0 rgba(208, 55, 253, 0.5);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(168, 85, 247, 0), 0 0 0 20px rgba(208, 55, 253, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(168, 85, 247, 0), 0 0 0 0 rgba(208, 55, 253, 0);
-            }
+            0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.8), 0 0 0 0 rgba(208, 55, 253, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(168, 85, 247, 0), 0 0 0 20px rgba(208, 55, 253, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0), 0 0 0 0 rgba(208, 55, 253, 0); }
         }
 
-        /* LIVE VOICE WAVE BUTTON */
         .wave-btn { 
             width: 32px; 
             height: 32px; 
@@ -143,6 +172,7 @@ HTML_TEMPLATE = """
         <button class="nav-btn" id="studioBtn" onclick="switchTab('studio')">3D Video Studio</button>
     </div>
 
+    <!-- AI CHAT TAB -->
     <div class="tab-content active-tab" id="chatTab">
         <div class="greeting">Hi Jamshed,</div>
         <div class="subtext">Ask or speak anything to Tringo AI!</div>
@@ -152,12 +182,10 @@ HTML_TEMPLATE = """
             <div class="input-box">
                 <textarea id="msgInput" rows="1" placeholder="Message Tringo AI..." oninput="autoResize(this)"></textarea>
                 
-                <!-- Mic Icon (Voice to Text with Wave Effect) -->
                 <button class="mic-btn" id="micBtn" onclick="startDictation(event)" title="Voice to Text">
                     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </button>
 
-                <!-- Live Voice Wave Button -->
                 <button class="wave-btn" id="waveBtn" onclick="toggleLiveWave()" title="Live Voice">
                     <svg viewBox="0 0 24 24"><path d="M12 3v18M8 6v12M4 9v6M16 6v12M20 9v6" stroke-width="2.5" stroke-linecap="round"/></svg>
                 </button>
@@ -169,19 +197,33 @@ HTML_TEMPLATE = """
         </div>
     </div>
 
+    <!-- 3D STUDIO TAB -->
     <div class="tab-content" id="studioTab">
         <div class="greeting">🎬 3D Video Studio</div>
-        <div class="subtext">3D Animation Workspace Ready</div>
+        <div class="subtext">Interactive 3D Avatar & Workspace</div>
+
+        <!-- 3D Canvas Viewport -->
+        <div id="canvas3d-container"></div>
+
+        <div class="studio-controls">
+            <button class="action-btn" onclick="rotateAvatar()">🔄 Rotate 3D Model</button>
+            <button class="action-btn" onclick="resetView()">🎯 Reset View</button>
+        </div>
     </div>
 
     <script>
         let isWaveActive = false;
+        let scene, camera, renderer, model;
 
         function switchTab(t) {
             document.getElementById('chatTab').classList.toggle('active-tab', t === 'chat');
             document.getElementById('studioTab').classList.toggle('active-tab', t === 'studio');
             document.getElementById('chatBtn').classList.toggle('active', t === 'chat');
             document.getElementById('studioBtn').classList.toggle('active', t === 'studio');
+
+            if (t === 'studio' && !scene) {
+                init3DStudio();
+            }
         }
 
         function autoResize(textarea) {
@@ -189,10 +231,8 @@ HTML_TEMPLATE = """
             textarea.style.height = (textarea.scrollHeight > 120 ? 120 : textarea.scrollHeight) + 'px';
         }
 
-        /* Voice Dictation with Purple Sound Wave Rings */
         function startDictation(event) {
             if (event) event.preventDefault();
-            
             const input = document.getElementById('msgInput');
             const micBtn = document.getElementById('micBtn');
 
@@ -203,19 +243,9 @@ HTML_TEMPLATE = """
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             const rec = new SR();
 
-            rec.onstart = () => {
-                micBtn.classList.add('active'); // Activates Purple Wave Animation
-            };
-
-            rec.onresult = (e) => { 
-                input.value = e.results[0][0].transcript;
-                autoResize(input);
-            };
-
-            rec.onend = () => {
-                micBtn.classList.remove('active'); // Stops Animation
-                input.focus();
-            };
+            rec.onstart = () => micBtn.classList.add('active');
+            rec.onresult = (e) => { input.value = e.results[0][0].transcript; autoResize(input); };
+            rec.onend = () => { micBtn.classList.remove('active'); input.focus(); };
 
             rec.start();
             input.focus();
@@ -224,12 +254,7 @@ HTML_TEMPLATE = """
         function toggleLiveWave() {
             const waveBtn = document.getElementById('waveBtn');
             isWaveActive = !isWaveActive;
-
-            if (isWaveActive) {
-                waveBtn.classList.add('listening');
-            } else {
-                waveBtn.classList.remove('listening');
-            }
+            waveBtn.classList.toggle('listening', isWaveActive);
         }
 
         function sendMsg() {
@@ -241,6 +266,56 @@ HTML_TEMPLATE = """
                 input.style.height = '24px';
             }
         }
+
+        /* THREE.JS 3D AVATAR STUDIO INIT */
+        function init3DStudio() {
+            const container = document.getElementById('canvas3d-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a);
+
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 1.2, 3);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xd037fd, 2);
+            dirLight.position.set(2, 4, 2);
+            scene.add(dirLight);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            const loader = new THREE.GLTFLoader();
+            loader.load('/public/avatar.glb', (gltf) => {
+                model = gltf.scene;
+                model.position.set(0, 0, 0);
+                scene.add(model);
+            }, undefined, (err) => {
+                console.log("Loading fallback cube model");
+                const geo = new THREE.BoxGeometry(1, 1, 1);
+                const mat = new THREE.MeshStandardMaterial({ color: 0xd037fd });
+                model = new THREE.Mesh(geo, mat);
+                scene.add(model);
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+                if (model) model.rotation.y += 0.005;
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        function rotateAvatar() {
+            if (model) model.rotation.y += 0.5;
+        }
+
+        function resetView() {
+            if (model) model.rotation.set(0, 0, 0);
+        }
     </script>
 </body>
 </html>
@@ -251,4 +326,3 @@ def home():
     return render_template_string(HTML_TEMPLATE)
 
 app = app
-
