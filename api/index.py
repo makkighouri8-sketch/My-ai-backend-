@@ -44,7 +44,7 @@ HTML_TEMPLATE = """
         }
         .nav-btn.active { color: #ffffff; background: #222222; border-color: #d037fd; }
 
-        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 20px; }
+        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 16px; }
 
         .logo-container { margin-bottom: 20px; }
         .logo-container svg { width: 85px; height: 85px; }
@@ -52,23 +52,23 @@ HTML_TEMPLATE = """
         .greeting-text { font-size: 1.5rem; font-weight: bold; color: #ffffff; margin-bottom: 6px; text-align: center; }
         .sub-text { font-size: 0.9rem; color: #666666; margin-bottom: 30px; text-align: center; }
 
-        .chat-display { width: 100%; max-width: 500px; min-height: 50px; max-height: 160px; overflow-y: auto; text-align: center; font-size: 0.95rem; color: #cccccc; line-height: 1.4; padding: 0 10px; margin-bottom: 20px; }
+        .chat-display { width: 100%; max-width: 480px; min-height: 50px; max-height: 160px; overflow-y: auto; text-align: center; font-size: 0.95rem; color: #cccccc; line-height: 1.4; padding: 0 10px; margin-bottom: 20px; }
 
-        /* FIXED BOTTOM INPUT BAR CONTAINER */
+        /* BOTTOM INPUT CONTAINER (COMPACT & FITS MOBILE SCREEN) */
         .bottom-bar-container {
             position: absolute;
-            bottom: 24px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            width: 92%;
-            max-width: 500px;
+            width: 95%;
+            max-width: 460px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 6px;
             z-index: 5;
         }
 
-        /* Compact Inner Input Capsule Box */
+        /* Inner Input Capsule Box */
         .input-wrapper {
             flex: 1;
             display: flex;
@@ -76,7 +76,9 @@ HTML_TEMPLATE = """
             background: #121212;
             border: 1px solid #282828;
             border-radius: 30px;
-            padding: 4px 6px 4px 16px;
+            padding: 4px 6px 4px 14px;
+            gap: 6px;
+            min-width: 0; /* Prevents overflow */
         }
         .input-wrapper input {
             flex: 1;
@@ -84,15 +86,33 @@ HTML_TEMPLATE = """
             border: none;
             outline: none;
             color: #ffffff;
-            font-size: 0.95rem;
-            height: 44px;
+            font-size: 0.9rem;
+            height: 42px;
+            min-width: 0;
         }
         .input-wrapper input::placeholder { color: #555555; }
 
-        /* Wave Live Voice Trigger inside Box */
+        /* Voice-to-Text Mic Icon (Before Live Wave) */
+        .dictate-mic-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #1e1e1e;
+            border: 1px solid #333333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .dictate-mic-btn.recording { background: #ff2a5f; border-color: #ff2a5f; }
+        .dictate-mic-btn svg { width: 16px; height: 16px; fill: #ffffff; }
+
+        /* Live Wave Trigger inside Box */
         .live-wave-trigger {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: linear-gradient(135deg, #a855f7, #6366f1);
             border: none;
@@ -103,23 +123,24 @@ HTML_TEMPLATE = """
             box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
             flex-shrink: 0;
         }
-        .live-wave-trigger svg { width: 18px; height: 18px; fill: #ffffff; }
+        .live-wave-trigger svg { width: 16px; height: 16px; fill: #ffffff; }
 
-        /* External Send Button (Outside Box) */
+        /* Compact Send Button Outside Box */
         .send-btn-outside {
-            height: 44px;
-            padding: 0 20px;
+            height: 42px;
+            padding: 0 14px;
             background: #222222;
             border: 1px solid #333333;
-            border-radius: 24px;
+            border-radius: 22px;
             color: #ffffff;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            white-space: nowrap;
         }
 
         /* FULLSCREEN GEMINI STYLE LIVE OVERLAY */
@@ -283,13 +304,23 @@ HTML_TEMPLATE = """
             <div class="sub-text">Ask or speak anything to Tringo AI!</div>
 
             <div class="chat-display" id="chatDisplay">
-                Tap the wave button in the input bar to start Gemini-style Live Voice Chat!
+                Tap the mic icon to dictate text, or the wave icon for Gemini Live Voice Chat!
             </div>
 
             <!-- Outer Container for Input and External Send Button -->
             <div class="bottom-bar-container">
                 <div class="input-wrapper">
                     <input type="text" id="msgInput" placeholder="Message Tringo AI..." onkeypress="onKey(event)">
+                    
+                    <!-- Voice to Text Mic Button (Dictation) -->
+                    <button class="dictate-mic-btn" id="dictateBtn" onclick="toggleDictation()" title="Voice to Text">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </button>
+
+                    <!-- Live Voice Wave Button -->
                     <button class="live-wave-trigger" onclick="openLiveVoiceMode()" title="Live Voice Chat">
                         <svg viewBox="0 0 24 24">
                             <path d="M12 3v18M8 6v12M4 9v6M16 6v12M20 9v6" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
@@ -333,31 +364,34 @@ HTML_TEMPLATE = """
 
     <script>
         let isLiveActive = false;
-        let recognition = null;
+        let isDictating = false;
+        let liveRecognition = null;
+        let dictateRecognition = null;
         let synthesis = window.speechSynthesis;
 
+        // Initialize Speech Recognition
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
+            
+            // Live Overlay Recognition
+            liveRecognition = new SpeechRecognition();
+            liveRecognition.continuous = false;
+            liveRecognition.interimResults = true;
+            liveRecognition.lang = 'en-US';
 
-            recognition.onstart = () => {
+            liveRecognition.onstart = () => {
                 const overlay = document.getElementById('geminiOverlay');
                 overlay.className = 'gemini-overlay active listening';
                 document.getElementById('liveStatus').textContent = "Listening to you...";
             };
 
-            recognition.onresult = (event) => {
+            liveRecognition.onresult = (event) => {
                 let interim = '';
                 let final = '';
-
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) final += event.results[i][0].transcript;
                     else interim += event.results[i][0].transcript;
                 }
-
                 if (interim) document.getElementById('liveStatus').textContent = interim;
                 if (final) {
                     document.getElementById('liveStatus').textContent = final;
@@ -365,26 +399,61 @@ HTML_TEMPLATE = """
                 }
             };
 
-            recognition.onerror = () => {
-                if(isLiveActive) {
-                    document.getElementById('liveStatus').textContent = "Didn't catch that. Try speaking again.";
-                }
+            liveRecognition.onerror = () => {
+                if(isLiveActive) document.getElementById('liveStatus').textContent = "Didn't catch that. Try speaking again.";
             };
 
-            recognition.onend = () => {};
+            // Voice-to-Text (Dictation into Input Box) Recognition
+            dictateRecognition = new SpeechRecognition();
+            dictateRecognition.continuous = false;
+            dictateRecognition.interimResults = true;
+            dictateRecognition.lang = 'en-US';
+
+            dictateRecognition.onstart = () => {
+                isDictating = true;
+                document.getElementById('dictateBtn').classList.add('recording');
+            };
+
+            dictateRecognition.onresult = (event) => {
+                let speechResult = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    speechResult += event.results[i][0].transcript;
+                }
+                document.getElementById('msgInput').value = speechResult;
+            };
+
+            dictateRecognition.onend = () => {
+                isDictating = false;
+                document.getElementById('dictateBtn').classList.remove('recording');
+            };
+
+            dictateRecognition.onerror = () => {
+                isDictating = false;
+                document.getElementById('dictateBtn').classList.remove('recording');
+            };
+        }
+
+        // Dictation Toggle Function
+        function toggleDictation() {
+            if (!dictateRecognition) return alert('Voice recognition not supported');
+            if (isDictating) {
+                dictateRecognition.stop();
+            } else {
+                dictateRecognition.start();
+            }
         }
 
         function openLiveVoiceMode() {
-            if (!recognition) return alert('Speech recognition is not supported in this browser.');
+            if (!liveRecognition) return alert('Speech recognition is not supported in this browser.');
             isLiveActive = true;
             document.getElementById('geminiOverlay').classList.add('active');
             synthesis.cancel();
-            recognition.start();
+            liveRecognition.start();
         }
 
         function closeLiveVoiceMode() {
             isLiveActive = false;
-            if (recognition) recognition.stop();
+            if (liveRecognition) liveRecognition.stop();
             if (synthesis) synthesis.cancel();
             document.getElementById('geminiOverlay').className = 'gemini-overlay';
         }
@@ -425,7 +494,7 @@ HTML_TEMPLATE = """
                 if (isLiveActive) {
                     overlay.className = 'gemini-overlay active listening';
                     document.getElementById('liveStatus').textContent = "Listening again...";
-                    recognition.start();
+                    liveRecognition.start();
                 }
             };
 
@@ -449,41 +518,4 @@ HTML_TEMPLATE = """
                 const data = await res.json();
                 document.getElementById('chatDisplay').textContent = "Tringo: " + (data.response || "No response");
             } catch (e) {
-                document.getElementById('chatDisplay').textContent = "Error!";
-            }
-        }
-
-        function onKey(e) { if (e.key === 'Enter') sendTextChat(); }
-    </script>
-</body>
-</html>
-"""
-
-@app.route('/')
-def home():
-    return render_template_string(HTML_TEMPLATE)
-
-@app.route('/chat', methods=['POST'])
-def chat():
-    data = request.json or {}
-    user_msg = data.get('message', '')
-    
-    if not GEMINI_API_KEY:
-        return jsonify({"response": "Gemini API key missing."})
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-    payload = {"contents": [{"parts": [{"text": user_msg}]}]}
-    
-    try:
-        r = requests.post(url, json=payload, timeout=15)
-        res_data = r.json()
-        if 'candidates' in res_data:
-            reply = res_data['candidates'][0]['content']['parts'][0]['text']
-            return jsonify({"response": reply})
-        else:
-            return jsonify({"response": "API Key Error."})
-    except Exception as e:
-        return jsonify({"response": f"Error: {str(e)}"})
-
-if __name__ == '__main__':
-    app.run(debug=True)
+                document.getElementById('chatD
