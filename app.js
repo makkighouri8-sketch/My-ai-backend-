@@ -1,71 +1,108 @@
-let isWaveActive = false;
+let currentUserName = localStorage.getItem("tringo_user") || "";
+let chatHistory = JSON.parse(localStorage.getItem("tringo_history")) || [];
 
-function switchTab(t) {
-    document.getElementById('chatTab').classList.toggle('active-tab', t === 'chat');
-    document.getElementById('studioTab').classList.toggle('active-tab', t === 'studio');
-    document.getElementById('chatBtn').classList.toggle('active', t === 'chat');
-    document.getElementById('studioBtn').classList.toggle('active', t === 'studio');
-}
-
-function autoResize(textarea) {
-    textarea.style.height = '24px';
-    textarea.style.height = (textarea.scrollHeight > 120 ? 120 : textarea.scrollHeight) + 'px';
-}
-
-function startDictation(event) {
-    if (event) event.preventDefault();
-    const input = document.getElementById('msgInput');
-    const micBtn = document.getElementById('micBtn');
-
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        return alert('Voice recognition not supported on this browser.');
+// Initialization
+window.onload = function() {
+    if (currentUserName) {
+        document.getElementById("loginModal").style.display = "none";
+        document.getElementById("userDisplayName").innerText = currentUserName;
+        document.getElementById("welcomeText").innerText = `Hi ${currentUserName},`;
     }
+    renderHistory();
+};
 
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const rec = new SR();
-
-    rec.onstart = () => micBtn.classList.add('active');
-    rec.onresult = (e) => { input.value = e.results[0][0].transcript; autoResize(input); };
-    rec.onend = () => { micBtn.classList.remove('active'); input.focus(); };
-
-    rec.start();
-    input.focus();
+function handleLogin() {
+    const input = document.getElementById("userNameInput").value.trim();
+    if (input) {
+        currentUserName = input;
+        localStorage.setItem("tringo_user", currentUserName);
+        document.getElementById("loginModal").style.display = "none";
+        document.getElementById("userDisplayName").innerText = currentUserName;
+        document.getElementById("welcomeText").innerText = `Hi ${currentUserName},`;
+    }
 }
 
-function toggleLiveWave() {
-    const waveBtn = document.getElementById('waveBtn');
-    const liveOverlay = document.getElementById('liveOverlay');
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    sidebar.classList.toggle("open");
+}
+
+async function sendMessage() {
+    const inputField = document.getElementById("msgInput");
+    const message = inputField.value.trim();
+    if (!message) return;
+
+    const chatBox = document.getElementById("chatBox");
+
+    // Add User Message
+    chatBox.innerHTML += `<div class="message user-message">${message}</div>`;
+    inputField.value = "";
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // Loading Indicator
+    const loadingId = "load_" + Date.now();
+    chatBox.innerHTML += `<div class="message ai-message" id="${loadingId}">Thinking...</div>`;
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        });
+        const data = await response.json();
+        
+        document.getElementById(loadingId).innerText = data.reply;
+        speakText(data.reply);
+        
+        // Save History
+        chatHistory.push({ user: message, ai: data.reply });
+        localStorage.setItem("tringo_history", JSON.stringify(chatHistory));
+    } catch (err) {
+        document.getElementById(loadingId).innerText = "Server Error. Please try again.";
+    }
     
-    isWaveActive = !isWaveActive;
-    waveBtn.classList.toggle('listening', isWaveActive);
-    liveOverlay.classList.toggle('active', isWaveActive);
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-function triggerUpload(e) {
-    if (e.target.classList.contains('remove-btn')) return;
-    document.getElementById('imgUpload').click();
+// Speech-to-Text (Voice Input)
+function toggleVoiceInput() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Voice recognition not supported on this browser.");
+        return;
+    }
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.start();
+
+    document.getElementById("micBtn").classList.add("listening");
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("msgInput").value = transcript;
+        document.getElementById("micBtn").classList.remove("listening");
+        sendMessage();
+    };
+
+    recognition.onerror = function() {
+        document.getElementById("micBtn").classList.remove("listening");
+    };
 }
 
-function previewImage(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = document.getElementById('imgPreview');
-            img.src = e.target.result;
-            document.getElementById('previewWrapper').style.display = 'flex';
-            document.getElementById('uploadIcon').style.display = 'none';
-            document.getElementById('uploadText').style.display = 'none';
-        }
-        reader.readAsDataURL(input.files[0]);
+// Text-to-Speech (Voice Reply)
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(utterance);
     }
 }
 
-function removeImage(e) {
-    e.stopPropagation();
-    const fileInput = document.getElementById('imgUpload');
-    fileInput.value = '';
-    document.getElementById('imgPreview').src = '';
-    document.getElementById('previewWrapper').style.display = 'none';
-    document.getElementById('uploadIcon').style.display = 'block';
-    document.getElementById('uploadText').style.display = 'block';
+function startNewChat() {
+    document.getElementById("chatBox").innerHTML = `<div class="message ai-message">Hello ${currentUserName}! How can I assist you today?</div>`;
+}
+
+function renderHistory() {
+    const list = document.getElementById("historyList");
+    if (chatHistory.length > 0) {
+        list.innerHTML = chatHistory.slice(-5).map(item => `<div class="history-item">${item.user.substring(0, 20)}...</div>`).join('');
+    }
 }
