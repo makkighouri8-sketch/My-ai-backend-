@@ -28,7 +28,7 @@ HTML_TEMPLATE = """
             gap: 12px; 
             background: #000000; 
             flex-shrink: 0; 
-            z-index: 2;
+            z-index: 10;
         }
         .nav-btn { 
             flex: 1; 
@@ -44,7 +44,8 @@ HTML_TEMPLATE = """
         }
         .nav-btn.active { color: #ffffff; background: #222222; border-color: #d037fd; }
 
-        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 16px; }
+        .tab-content { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 16px; width: 100%; height: 100%; }
+        .tab-content.active-tab { display: flex; }
 
         .logo-container { margin-bottom: 20px; }
         .logo-container svg { width: 85px; height: 85px; }
@@ -54,7 +55,7 @@ HTML_TEMPLATE = """
 
         .chat-display { width: 100%; max-width: 480px; min-height: 50px; max-height: 160px; overflow-y: auto; text-align: center; font-size: 0.95rem; color: #cccccc; line-height: 1.4; padding: 0 10px; margin-bottom: 20px; }
 
-        /* BOTTOM INPUT CONTAINER (COMPACT & FITS MOBILE SCREEN) */
+        /* BOTTOM INPUT CONTAINER */
         .bottom-bar-container {
             position: absolute;
             bottom: 20px;
@@ -78,7 +79,7 @@ HTML_TEMPLATE = """
             border-radius: 30px;
             padding: 4px 6px 4px 14px;
             gap: 6px;
-            min-width: 0; /* Prevents overflow */
+            min-width: 0;
         }
         .input-wrapper input {
             flex: 1;
@@ -92,10 +93,10 @@ HTML_TEMPLATE = """
         }
         .input-wrapper input::placeholder { color: #555555; }
 
-        /* Voice-to-Text Mic Icon (Before Live Wave) */
+        /* Mic Button for Voice to Text */
         .dictate-mic-btn {
-            width: 34px;
-            height: 34px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: #1e1e1e;
             border: 1px solid #333333;
@@ -104,10 +105,9 @@ HTML_TEMPLATE = """
             justify-content: center;
             cursor: pointer;
             flex-shrink: 0;
-            transition: background 0.2s;
         }
         .dictate-mic-btn.recording { background: #ff2a5f; border-color: #ff2a5f; }
-        .dictate-mic-btn svg { width: 16px; height: 16px; fill: #ffffff; }
+        .dictate-mic-btn svg { width: 18px; height: 18px; fill: #ffffff; }
 
         /* Live Wave Trigger inside Box */
         .live-wave-trigger {
@@ -229,58 +229,20 @@ HTML_TEMPLATE = """
             backdrop-filter: blur(15px);
         }
 
-        .wave-bars {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            height: 30px;
-        }
-
-        .bar {
-            width: 4px;
-            height: 8px;
-            background: linear-gradient(180deg, #00f2fe, #a855f7);
-            border-radius: 4px;
-            transition: height 0.2s ease;
-        }
-
-        .gemini-overlay.listening .bar {
-            animation: sound-wave 1s ease-in-out infinite alternate;
-        }
-
-        .gemini-overlay.speaking .bar {
-            background: linear-gradient(180deg, #ff007f, #a855f7);
-            animation: sound-wave-fast 0.6s ease-in-out infinite alternate;
-        }
-
+        .wave-bars { display: flex; align-items: center; gap: 5px; height: 30px; }
+        .bar { width: 4px; height: 8px; background: linear-gradient(180deg, #00f2fe, #a855f7); border-radius: 4px; transition: height 0.2s ease; }
+        .gemini-overlay.listening .bar { animation: sound-wave 1s ease-in-out infinite alternate; }
+        .gemini-overlay.speaking .bar { background: linear-gradient(180deg, #ff007f, #a855f7); animation: sound-wave-fast 0.6s ease-in-out infinite alternate; }
         .bar:nth-child(1) { animation-delay: 0.1s; }
         .bar:nth-child(2) { animation-delay: 0.3s; }
         .bar:nth-child(3) { animation-delay: 0.2s; }
         .bar:nth-child(4) { animation-delay: 0.4s; }
         .bar:nth-child(5) { animation-delay: 0.15s; }
 
-        @keyframes sound-wave {
-            0% { height: 6px; }
-            100% { height: 26px; }
-        }
+        @keyframes sound-wave { 0% { height: 6px; } 100% { height: 26px; } }
+        @keyframes sound-wave-fast { 0% { height: 10px; } 100% { height: 32px; } }
 
-        @keyframes sound-wave-fast {
-            0% { height: 10px; }
-            100% { height: 32px; }
-        }
-
-        .end-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #262626;
-            border: 1px solid #333;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
+        .end-btn { width: 44px; height: 44px; border-radius: 50%; background: #262626; border: 1px solid #333; color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .end-btn svg { width: 20px; height: 20px; fill: #ff4757; }
     </style>
 </head>
@@ -289,11 +251,12 @@ HTML_TEMPLATE = """
     <div class="app-container">
         <!-- Top Nav -->
         <div class="top-nav">
-            <button class="nav-btn active">AI Chat</button>
-            <button class="nav-btn">3D Video Studio</button>
+            <button class="nav-btn active" id="chatTabBtn" onclick="switchTab('chat')">AI Chat</button>
+            <button class="nav-btn" id="studioTabBtn" onclick="switchTab('studio')">3D Video Studio</button>
         </div>
 
-        <div class="main-content">
+        <!-- AI CHAT TAB -->
+        <div class="tab-content active-tab" id="chatTab">
             <div class="logo-container">
                 <svg viewBox="0 0 100 100">
                     <path fill="#d037fd" d="M50,15 C65,15 78,28 78,43 C78,65 50,85 50,85 C50,85 22,65 22,43 C22,28 35,15 50,15 Z" />
@@ -307,12 +270,11 @@ HTML_TEMPLATE = """
                 Tap the mic icon to dictate text, or the wave icon for Gemini Live Voice Chat!
             </div>
 
-            <!-- Outer Container for Input and External Send Button -->
             <div class="bottom-bar-container">
                 <div class="input-wrapper">
                     <input type="text" id="msgInput" placeholder="Message Tringo AI..." onkeypress="onKey(event)">
                     
-                    <!-- Voice to Text Mic Button (Dictation) -->
+                    <!-- Voice to Text Mic Button -->
                     <button class="dictate-mic-btn" id="dictateBtn" onclick="toggleDictation()" title="Voice to Text">
                         <svg viewBox="0 0 24 24">
                             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
@@ -328,6 +290,15 @@ HTML_TEMPLATE = """
                     </button>
                 </div>
                 <button class="send-btn-outside" onclick="sendTextChat()">Send</button>
+            </div>
+        </div>
+
+        <!-- 3D VIDEO STUDIO TAB -->
+        <div class="tab-content" id="studioTab">
+            <div class="greeting-text" style="margin-top:20px;">🎬 3D Video Studio</div>
+            <div class="sub-text">Generate 3D Animated Character Prompts & Videos</div>
+            <div style="background:#141414; border:1px solid #262626; border-radius:16px; padding:20px; width:100%; max-width:460px; text-align:center; color:#aaaaaa;">
+                Enter your 3D Video Prompt or Character idea here to generate animations.
             </div>
         </div>
 
@@ -369,11 +340,24 @@ HTML_TEMPLATE = """
         let dictateRecognition = null;
         let synthesis = window.speechSynthesis;
 
-        // Initialize Speech Recognition
+        function switchTab(tabName) {
+            document.getElementById('chatTab').classList.remove('active-tab');
+            document.getElementById('studioTab').classList.remove('active-tab');
+            document.getElementById('chatTabBtn').classList.remove('active');
+            document.getElementById('studioTabBtn').classList.remove('active');
+
+            if (tabName === 'chat') {
+                document.getElementById('chatTab').classList.add('active-tab');
+                document.getElementById('chatTabBtn').classList.add('active');
+            } else {
+                document.getElementById('studioTab').classList.add('active-tab');
+                document.getElementById('studioTabBtn').classList.add('active');
+            }
+        }
+
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             
-            // Live Overlay Recognition
             liveRecognition = new SpeechRecognition();
             liveRecognition.continuous = false;
             liveRecognition.interimResults = true;
@@ -403,7 +387,6 @@ HTML_TEMPLATE = """
                 if(isLiveActive) document.getElementById('liveStatus').textContent = "Didn't catch that. Try speaking again.";
             };
 
-            // Voice-to-Text (Dictation into Input Box) Recognition
             dictateRecognition = new SpeechRecognition();
             dictateRecognition.continuous = false;
             dictateRecognition.interimResults = true;
@@ -433,9 +416,8 @@ HTML_TEMPLATE = """
             };
         }
 
-        // Dictation Toggle Function
         function toggleDictation() {
-            if (!dictateRecognition) return alert('Voice recognition not supported');
+            if (!dictateRecognition) return alert('Voice recognition not supported in this browser.');
             if (isDictating) {
                 dictateRecognition.stop();
             } else {
@@ -498,24 +480,4 @@ HTML_TEMPLATE = """
                 }
             };
 
-            synthesis.speak(utterance);
-        }
-
-        async function sendTextChat() {
-            const inp = document.getElementById('msgInput');
-            const val = inp.value.trim();
-            if (!val) return;
-
-            document.getElementById('chatDisplay').textContent = "You: " + val;
-            inp.value = '';
-
-            try {
-                const res = await fetch('/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: val })
-                });
-                const data = await res.json();
-                document.getElementById('chatDisplay').textContent = "Tringo: " + (data.response || "No response");
-            } catch (e) {
-                document.getElementById('chatD
+            syn
