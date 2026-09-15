@@ -1,0 +1,56 @@
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { width: 100vw; height: 100vh; background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+
+/* Top Navigation */
+.top-nav { display: flex; padding: 12px; gap: 10px; background: #000; z-index: 10; border-bottom: 1px solid #1a1a1a; }
+.nav-btn { flex: 1; padding: 10px; background: #121212; border: 1px solid #262626; border-radius: 20px; color: #888; font-weight: 600; cursor: pointer; text-align: center; font-size: 0.9rem; transition: all 0.2s; }
+.nav-btn.active { color: #fff; background: #1a1a1a; border-color: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
+
+/* Main Tabs Container */
+.tab-content { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: flex-start; padding: 16px; overflow-y: auto; padding-bottom: 90px; position: relative; }
+.tab-content.active-tab { display: flex; }
+
+.greeting { font-size: 1.4rem; font-weight: 700; margin-top: 10px; margin-bottom: 4px; text-align: center; }
+.subtext { font-size: 0.85rem; color: #777; margin-bottom: 20px; text-align: center; }
+.chat-box { width: 100%; max-width: 500px; color: #ccc; text-align: center; margin-bottom: 20px; font-size: 0.95rem; word-break: break-word; z-index: 2; }
+
+/* 3D Studio Cards Layout */
+.studio-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 20px; }
+.studio-card { background: #0d0d0d; border: 1px solid #222; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.studio-card:focus-within { border-color: #a855f7; }
+
+.card-header { display: flex; align-items: center; gap: 12px; }
+.header-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.4); flex-shrink: 0; }
+.header-icon svg { width: 20px; height: 20px; stroke: #ffffff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.card-title { font-weight: 700; font-size: 1.05rem; color: #fff; }
+.card-desc { font-size: 0.8rem; color: #777; line-height: 1.3; }
+
+.studio-input { width: 100%; background: #141414; border: 1px solid #2a2a2a; border-radius: 12px; padding: 12px; color: #fff; font-size: 0.88rem; outline: none; resize: none; font-family: inherit; }
+.studio-input:focus { border-color: #a855f7; }
+
+.upload-area { border: 2px dashed #2a2a2a; border-radius: 12px; padding: 16px; text-align: center; background: #121212; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 120px; position: relative; overflow: hidden; }
+.upload-icon-svg { width: 28px; height: 28px; stroke: #888; fill: none; stroke-width: 2; }
+.upload-text { font-size: 0.8rem; color: #888; }
+
+.preview-wrapper { position: relative; width: 100%; display: none; align-items: center; justify-content: center; }
+.img-preview { width: 100%; max-height: 180px; object-fit: contain; border-radius: 8px; }
+.remove-btn { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; background: rgba(0, 0, 0, 0.75); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50%; color: #fff; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5; }
+
+.gen-btn { background: linear-gradient(135deg, #a855f7, #d037fd); color: #fff; border: none; border-radius: 12px; padding: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3); }
+
+/* Bottom Bar */
+.bottom-bar { position: fixed; bottom: 12px; left: 0; width: 100%; padding: 0 10px; display: flex; align-items: flex-end; gap: 6px; z-index: 100; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); }
+.input-box { flex: 1; display: flex; align-items: center; background: #121212; border: 1px solid #282828; border-radius: 20px; padding: 6px 8px 6px 12px; gap: 6px; min-width: 0; }
+.input-box textarea { flex: 1; background: transparent; border: none; outline: none; color: #fff; font-size: 0.9rem; font-family: inherit; resize: none; height: 24px; max-height: 120px; line-height: 20px; overflow-y: auto; }
+
+.mic-btn { width: 30px; height: 30px; border-radius: 50%; background: #222; border: 1px solid #444; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.mic-btn svg { width: 16px; height: 16px; fill: #fff; }
+.mic-btn.active { border-color: #a855f7; background: #333; }
+
+.wave-btn { width: 32px; height: 32px; border-radius: 50%; background: #a855f7; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.wave-btn svg { width: 16px; height: 16px; stroke: #fff; }
+
+.send-btn { width: 38px; height: 38px; background: #222; border: 1px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; margin-bottom: 2px; }
+.send-btn svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
+                   
