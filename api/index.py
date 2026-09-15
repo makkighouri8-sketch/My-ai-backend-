@@ -1,10 +1,7 @@
 from flask import Flask, request, jsonify, render_template_string
 import os
-import requests
 
 app = Flask(__name__)
-
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -12,470 +9,111 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tringo AI - Gemini Live</title>
+    <!-- CACHE BYPASS TAGS -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Tringo AI</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        html, body { width: 100%; height: 100%; background: #000000; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+        body { width: 100vw; height: 100vh; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .top-nav { display: flex; padding: 12px; gap: 10px; background: #000; }
+        .nav-btn { flex: 1; padding: 10px; background: #141414; border: 1px solid #262626; border-radius: 20px; color: #888; font-weight: bold; cursor: pointer; text-align: center; }
+        .nav-btn.active { color: #fff; background: #222; border-color: #d037fd; }
 
-        .app-container { display: flex; flex-direction: column; width: 100vw; height: 100vh; background: #000000; position: relative; }
-
-        /* Top Nav */
-        .top-nav { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 12px 16px; 
-            gap: 12px; 
-            background: #000000; 
-            flex-shrink: 0; 
-            z-index: 10;
-        }
-        .nav-btn { 
-            flex: 1; 
-            padding: 10px 16px; 
-            background: #141414; 
-            border: 1px solid #262626; 
-            border-radius: 24px; 
-            color: #888888; 
-            font-weight: bold; 
-            font-size: 0.9rem; 
-            cursor: pointer; 
-            text-align: center;
-        }
-        .nav-btn.active { color: #ffffff; background: #222222; border-color: #d037fd; }
-
-        .tab-content { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 16px; width: 100%; height: 100%; }
+        .tab-content { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
         .tab-content.active-tab { display: flex; }
 
-        .logo-container { margin-bottom: 20px; }
-        .logo-container svg { width: 85px; height: 85px; }
+        .greeting { font-size: 1.4rem; font-weight: bold; margin-bottom: 6px; }
+        .subtext { font-size: 0.85rem; color: #666; margin-bottom: 20px; text-align: center; }
+        .chat-box { width: 100%; max-width: 400px; color: #ccc; text-align: center; margin-bottom: 20px; font-size: 0.9rem; }
 
-        .greeting-text { font-size: 1.5rem; font-weight: bold; color: #ffffff; margin-bottom: 6px; text-align: center; }
-        .sub-text { font-size: 0.9rem; color: #666666; margin-bottom: 30px; text-align: center; }
+        /* INPUT BAR FOR MOBILE */
+        .bottom-bar { position: absolute; bottom: 15px; left: 0; width: 100%; padding: 0 10px; display: flex; align-items: center; gap: 6px; }
+        .input-box { flex: 1; display: flex; align-items: center; background: #121212; border: 1px solid #282828; border-radius: 25px; padding: 2px 8px 2px 12px; gap: 6px; min-width: 0; }
+        .input-box input { flex: 1; background: transparent; border: none; outline: none; color: #fff; font-size: 0.85rem; height: 38px; min-width: 0; }
+        
+        /* MIC BUTTON */
+        .mic-btn { width: 30px; height: 30px; border-radius: 50%; background: #222; border: 1px solid #444; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .mic-btn svg { width: 16px; height: 16px; fill: #fff; }
 
-        .chat-display { width: 100%; max-width: 480px; min-height: 50px; max-height: 160px; overflow-y: auto; text-align: center; font-size: 0.95rem; color: #cccccc; line-height: 1.4; padding: 0 10px; margin-bottom: 20px; }
+        /* LIVE WAVE BUTTON */
+        .wave-btn { width: 32px; height: 32px; border-radius: 50%; background: #a855f7; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .wave-btn svg { width: 16px; height: 16px; stroke: #fff; }
 
-        /* STRICT BOTTOM BAR CONTAINER - FIT TO SCREEN */
-        .bottom-bar-container {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            width: 100%;
-            padding: 0 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            z-index: 5;
-        }
-
-        /* Inner Input Capsule Box */
-        .input-wrapper {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            background: #121212;
-            border: 1px solid #282828;
-            border-radius: 30px;
-            padding: 3px 6px 3px 12px;
-            gap: 4px;
-            min-width: 0;
-        }
-        .input-wrapper input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: #ffffff;
-            font-size: 0.85rem;
-            height: 40px;
-            min-width: 0;
-        }
-        .input-wrapper input::placeholder { color: #555555; }
-
-        /* Voice-to-Text Mic Icon */
-        .dictate-mic-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #1e1e1e;
-            border: 1px solid #333333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        .dictate-mic-btn.recording { background: #ff2a5f; border-color: #ff2a5f; }
-        .dictate-mic-btn svg { width: 16px; height: 16px; fill: #ffffff; }
-
-        /* Live Wave Trigger inside Box */
-        .live-wave-trigger {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #a855f7, #6366f1);
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
-            flex-shrink: 0;
-        }
-        .live-wave-trigger svg { width: 16px; height: 16px; fill: #ffffff; }
-
-        /* Compact Send Icon Button Outside Box */
-        .send-btn-outside {
-            width: 40px;
-            height: 40px;
-            background: #222222;
-            border: 1px solid #333333;
-            border-radius: 50%;
-            color: #ffffff;
-            cursor: pointer;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .send-btn-outside svg { width: 18px; height: 18px; fill: #ffffff; margin-left: 2px; }
-
-        /* FULLSCREEN GEMINI STYLE LIVE OVERLAY */
-        .gemini-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #000000;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 40px 20px 40px 20px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .gemini-overlay.active { opacity: 1; pointer-events: auto; }
-
-        .overlay-top { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 500px; }
-        .brand-tag { font-size: 0.9rem; font-weight: 700; color: #a855f7; letter-spacing: 1px; text-transform: uppercase; }
-        .close-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; }
-
-        .gemini-blob-container {
-            position: relative;
-            width: 220px;
-            height: 220px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .gemini-blob {
-            width: 120px;
-            height: 120px;
-            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-            background: linear-gradient(45deg, #00f2fe, #4facfe, #6b11ff, #d037fd);
-            background-size: 200% 200%;
-            filter: blur(8px);
-            box-shadow: 0 0 60px rgba(79, 172, 254, 0.6), 0 0 80px rgba(208, 55, 253, 0.4);
-            animation: morph-blob 6s ease-in-out infinite alternate, gradient-shift 4s ease infinite;
-            transition: all 0.3s ease;
-        }
-
-        @keyframes morph-blob {
-            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: scale(1) rotate(0deg); }
-            50% { border-radius: 60% 40% 30% 70% / 50% 30% 70% 40%; transform: scale(1.1) rotate(180deg); }
-            100% { border-radius: 50% 50% 40% 60% / 30% 60% 40% 70%; transform: scale(0.95) rotate(360deg); }
-        }
-
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .gemini-overlay.listening .gemini-blob {
-            animation: morph-blob 2s ease-in-out infinite alternate, gradient-shift 2s ease infinite;
-            transform: scale(1.25);
-            box-shadow: 0 0 80px rgba(0, 242, 254, 0.8);
-        }
-
-        .gemini-overlay.speaking .gemini-blob {
-            animation: morph-blob 1.2s ease-in-out infinite alternate, gradient-shift 1.5s ease infinite;
-            transform: scale(1.4);
-            box-shadow: 0 0 90px rgba(208, 55, 253, 0.9);
-        }
-
-        .live-status { font-size: 1.1rem; color: #ffffff; text-align: center; max-width: 90%; min-height: 50px; font-weight: 500; }
-
-        .bottom-glow-bar {
-            width: 92%;
-            max-width: 450px;
-            height: 64px;
-            background: rgba(20, 20, 28, 0.9);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            border-radius: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px 0 24px;
-            box-shadow: 0 0 25px rgba(99, 102, 241, 0.25), inset 0 0 15px rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-        }
-
-        .wave-bars { display: flex; align-items: center; gap: 5px; height: 30px; }
-        .bar { width: 4px; height: 8px; background: linear-gradient(180deg, #00f2fe, #a855f7); border-radius: 4px; transition: height 0.2s ease; }
-        .gemini-overlay.listening .bar { animation: sound-wave 1s ease-in-out infinite alternate; }
-        .gemini-overlay.speaking .bar { background: linear-gradient(180deg, #ff007f, #a855f7); animation: sound-wave-fast 0.6s ease-in-out infinite alternate; }
-        .bar:nth-child(1) { animation-delay: 0.1s; }
-        .bar:nth-child(2) { animation-delay: 0.3s; }
-        .bar:nth-child(3) { animation-delay: 0.2s; }
-        .bar:nth-child(4) { animation-delay: 0.4s; }
-        .bar:nth-child(5) { animation-delay: 0.15s; }
-
-        @keyframes sound-wave { 0% { height: 6px; } 100% { height: 26px; } }
-        @keyframes sound-wave-fast { 0% { height: 10px; } 100% { height: 32px; } }
-
-        .end-btn { width: 44px; height: 44px; border-radius: 50%; background: #262626; border: 1px solid #333; color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .end-btn svg { width: 20px; height: 20px; fill: #ff4757; }
+        /* SMALL COMPACT SEND BUTTON */
+        .send-btn { width: 38px; height: 38px; background: #222; border: 1px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; }
+        .send-btn svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
     </style>
 </head>
 <body>
+    <div class="top-nav">
+        <button class="nav-btn active" id="chatBtn" onclick="switchTab('chat')">AI Chat</button>
+        <button class="nav-btn" id="studioBtn" onclick="switchTab('studio')">3D Video Studio</button>
+    </div>
 
-    <div class="app-container">
-        <!-- Top Nav -->
-        <div class="top-nav">
-            <button class="nav-btn active" id="chatTabBtn" onclick="switchTab('chat')">AI Chat</button>
-            <button class="nav-btn" id="studioTabBtn" onclick="switchTab('studio')">3D Video Studio</button>
-        </div>
+    <div class="tab-content active-tab" id="chatTab">
+        <div class="greeting">Hi Jamshed,</div>
+        <div class="subtext">Ask or speak anything to Tringo AI!</div>
+        <div class="chat-box" id="chatDisplay">Type or speak your prompt...</div>
 
-        <!-- AI CHAT TAB -->
-        <div class="tab-content active-tab" id="chatTab">
-            <div class="logo-container">
-                <svg viewBox="0 0 100 100">
-                    <path fill="#d037fd" d="M50,15 C65,15 78,28 78,43 C78,65 50,85 50,85 C50,85 22,65 22,43 C22,28 35,15 50,15 Z" />
-                </svg>
-            </div>
+        <div class="bottom-bar">
+            <div class="input-box">
+                <input type="text" id="msgInput" placeholder="Message Tringo AI...">
+                
+                <!-- Mic Icon (Voice to Text) -->
+                <button class="mic-btn" onclick="startDictation()" title="Voice to Text">
+                    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                </button>
 
-            <div class="greeting-text">Hi Jamshed,</div>
-            <div class="sub-text">Ask or speak anything to Tringo AI!</div>
-
-            <div class="chat-display" id="chatDisplay">
-                Tap mic to dictate text, or wave button for Gemini Live Chat!
-            </div>
-
-            <div class="bottom-bar-container">
-                <div class="input-wrapper">
-                    <input type="text" id="msgInput" placeholder="Message Tringo AI..." onkeypress="onKey(event)">
-                    
-                    <!-- 1. Voice to Text Mic Button -->
-                    <button class="dictate-mic-btn" id="dictateBtn" onclick="toggleDictation()" title="Voice to Text">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                        </svg>
-                    </button>
-
-                    <!-- 2. Live Voice Wave Button -->
-                    <button class="live-wave-trigger" onclick="openLiveVoiceMode()" title="Live Voice Chat">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M12 3v18M8 6v12M4 9v6M16 6v12M20 9v6" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- 3. Compact Send Arrow Button Outside -->
-                <button class="send-btn-outside" onclick="sendTextChat()" title="Send">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                    </svg>
+                <!-- Live Voice Wave -->
+                <button class="wave-btn" onclick="alert('Live Voice Active')" title="Live Voice">
+                    <svg viewBox="0 0 24 24"><path d="M12 3v18M8 6v12M4 9v6M16 6v12M20 9v6" stroke-width="2.5" stroke-linecap="round"/></svg>
                 </button>
             </div>
-        </div>
 
-        <!-- 3D VIDEO STUDIO TAB -->
-        <div class="tab-content" id="studioTab">
-            <div class="greeting-text" style="margin-top:20px;">🎬 3D Video Studio</div>
-            <div class="sub-text">Generate 3D Animated Character Prompts & Videos</div>
-            <div style="background:#141414; border:1px solid #262626; border-radius:16px; padding:20px; width:100%; max-width:460px; text-align:center; color:#aaaaaa;">
-                Enter your 3D Video Prompt or Character idea here to generate animations.
-            </div>
-        </div>
-
-        <!-- FULLSCREEN GEMINI STYLE LIVE OVERLAY -->
-        <div class="gemini-overlay" id="geminiOverlay">
-            <div class="overlay-top">
-                <span class="brand-tag">Tringo Live AI</span>
-                <button class="close-btn" onclick="closeLiveVoiceMode()">✕</button>
-            </div>
-
-            <div class="gemini-blob-container">
-                <div class="gemini-blob" id="geminiBlob"></div>
-            </div>
-
-            <div class="live-status" id="liveStatus">Listening... Speak now!</div>
-
-            <div class="bottom-glow-bar">
-                <div class="wave-bars">
-                    <div class="bar"></div>
-                    <div class="bar"></div>
-                    <div class="bar"></div>
-                    <div class="bar"></div>
-                    <div class="bar"></div>
-                </div>
-
-                <button class="end-btn" onclick="closeLiveVoiceMode()" title="Close Live Voice">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                    </svg>
-                </button>
-            </div>
+            <!-- Compact Send Button -->
+            <button class="send-btn" onclick="sendMsg()">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
         </div>
     </div>
 
+    <div class="tab-content" id="studioTab">
+        <div class="greeting">🎬 3D Video Studio</div>
+        <div class="subtext">3D Animation Workspace Ready</div>
+    </div>
+
     <script>
-        let isLiveActive = false;
-        let isDictating = false;
-        let liveRecognition = null;
-        let dictateRecognition = null;
-        let synthesis = window.speechSynthesis;
-
-        function switchTab(tabName) {
-            document.getElementById('chatTab').classList.remove('active-tab');
-            document.getElementById('studioTab').classList.remove('active-tab');
-            document.getElementById('chatTabBtn').classList.remove('active');
-            document.getElementById('studioTabBtn').classList.remove('active');
-
-            if (tabName === 'chat') {
-                document.getElementById('chatTab').classList.add('active-tab');
-                document.getElementById('chatTabBtn').classList.add('active');
-            } else {
-                document.getElementById('studioTab').classList.add('active-tab');
-                document.getElementById('studioTabBtn').classList.add('active');
-            }
+        function switchTab(t) {
+            document.getElementById('chatTab').classList.toggle('active-tab', t === 'chat');
+            document.getElementById('studioTab').classList.toggle('active-tab', t === 'studio');
+            document.getElementById('chatBtn').classList.toggle('active', t === 'chat');
+            document.getElementById('studioBtn').classList.toggle('active', t === 'studio');
         }
 
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
-            liveRecognition = new SpeechRecognition();
-            liveRecognition.continuous = false;
-            liveRecognition.interimResults = true;
-            liveRecognition.lang = 'en-US';
-
-            liveRecognition.onstart = () => {
-                const overlay = document.getElementById('geminiOverlay');
-                overlay.className = 'gemini-overlay active listening';
-                document.getElementById('liveStatus').textContent = "Listening to you...";
-            };
-
-            liveRecognition.onresult = (event) => {
-                let interim = '';
-                let final = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) final += event.results[i][0].transcript;
-                    else interim += event.results[i][0].transcript;
-                }
-                if (interim) document.getElementById('liveStatus').textContent = interim;
-                if (final) {
-                    document.getElementById('liveStatus').textContent = final;
-                    sendVoiceToAI(final);
-                }
-            };
-
-            liveRecognition.onerror = () => {
-                if(isLiveActive) document.getElementById('liveStatus').textContent = "Didn't catch that. Try speaking again.";
-            };
-
-            dictateRecognition = new SpeechRecognition();
-            dictateRecognition.continuous = false;
-            dictateRecognition.interimResults = true;
-            dictateRecognition.lang = 'en-US';
-
-            dictateRecognition.onstart = () => {
-                isDictating = true;
-                document.getElementById('dictateBtn').classList.add('recording');
-            };
-
-            dictateRecognition.onresult = (event) => {
-                let speechResult = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    speechResult += event.results[i][0].transcript;
-                }
-                document.getElementById('msgInput').value = speechResult;
-            };
-
-            dictateRecognition.onend = () => {
-                isDictating = false;
-                document.getElementById('dictateBtn').classList.remove('recording');
-            };
-
-            dictateRecognition.onerror = () => {
-                isDictating = false;
-                document.getElementById('dictateBtn').classList.remove('recording');
-            };
+        function startDictation() {
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert('Voice not supported');
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const rec = new SR();
+            rec.onresult = (e) => { document.getElementById('msgInput').value = e.results[0][0].transcript; };
+            rec.start();
         }
 
-        function toggleDictation() {
-            if (!dictateRecognition) return alert('Voice recognition not supported in this browser.');
-            if (isDictating) {
-                dictateRecognition.stop();
-            } else {
-                dictateRecognition.start();
-            }
+        function sendMsg() {
+            const val = document.getElementById('msgInput').value;
+            if (val) document.getElementById('chatDisplay').textContent = "You: " + val;
         }
+    </script>
+</body>
+</html>
+"""
 
-        function openLiveVoiceMode() {
-            if (!liveRecognition) return alert('Speech recognition is not supported in this browser.');
-            isLiveActive = true;
-            document.getElementById('geminiOverlay').classList.add('active');
-            synthesis.cancel();
-            liveRecognition.start();
-        }
+@app.route('/')
+def home():
+    return render_template_string(HTML_TEMPLATE)
 
-        function closeLiveVoiceMode() {
-            isLiveActive = false;
-            if (liveRecognition) liveRecognition.stop();
-            if (synthesis) synthesis.cancel();
-            document.getElementById('geminiOverlay').className = 'gemini-overlay';
-        }
-
-        async function sendVoiceToAI(text) {
-            const overlay = document.getElementById('geminiOverlay');
-            overlay.className = 'gemini-overlay active';
-            document.getElementById('liveStatus').textContent = "Thinking...";
-
-            try {
-                const res = await fetch('/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text })
-                });
-                const data = await res.json();
-                const reply = data.response || "No response received.";
-
-                document.getElementById('liveStatus').textContent = reply;
-                speakAIResponse(reply);
-            } catch (err) {
-                document.getElementById('liveStatus').textContent = "Connection error!";
-            }
-        }
-
-        function speakAIResponse(text) {
-            if (!synthesis) return;
-            synthesis.cancel();
-
-            const utterance = new SpeechSynthesisUtterance(text);
-            const overlay = document.getElementById('geminiOverlay');
-
-            utterance.onstart = () => {
-                overlay.className = 'gemini-overlay active speaking';
-            };
-
-            utterance.onend = () => {
-                if (isLiveActive) {
-                    overlay.className = 'gemi
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+    
