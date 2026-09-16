@@ -12,14 +12,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tringo AI</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -29,19 +29,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            overflow: hidden;
         }
 
+        /* Top Navigation */
         .top-nav {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            padding: 14px 16px;
+            gap: 10px;
+            padding: 12px 16px;
             background: #09090b;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            position: sticky;
-            top: 0;
             z-index: 10;
         }
 
@@ -51,7 +50,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: #71717a;
             font-size: 14px;
             font-weight: 600;
-            padding: 8px 20px;
+            padding: 8px 18px;
             border-radius: 20px;
             cursor: pointer;
             transition: 0.2s;
@@ -62,12 +61,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: #ffffff;
         }
 
+        /* Main Scrollable Content */
         .main-container {
             flex: 1;
             display: flex;
             flex-direction: column;
             padding: 16px;
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
             width: 100%;
             overflow-y: auto;
@@ -93,24 +93,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .subtext {
             font-size: 13px;
             color: #71717a;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
+        /* Chat Messages Container */
         .chat-box {
             flex: 1;
             display: flex;
             flex-direction: column;
             gap: 12px;
             overflow-y: auto;
-            padding-bottom: 80px;
+            padding-bottom: 90px;
         }
 
         .message {
             max-width: 85%;
             padding: 12px 16px;
             border-radius: 18px;
-            font-size: 14px;
-            line-height: 1.4;
+            font-size: 14.5px;
+            line-height: 1.45;
             word-wrap: break-word;
         }
 
@@ -129,26 +130,32 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border-top-right-radius: 4px;
         }
 
-        /* GEMINI CAPSULE BOTTOM DOCK */
-        .bottom-dock {
+        /* EXACT GEMINI STYLE INPUT CAPSULE DOCK */
+        .dock-wrapper {
             position: fixed;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 92%;
-            max-width: 580px;
-            background: #1e1f23;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 30px;
-            padding: 6px 12px;
+            bottom: 14px;
+            left: 0;
+            right: 0;
             display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 25px rgba(0,0,0,0.6);
+            justify-content: center;
+            padding: 0 14px;
             z-index: 100;
         }
 
-        .dock-btn {
+        .gemini-dock {
+            width: 100%;
+            max-width: 600px;
+            background: #1e1f23;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px;
+            padding: 6px 10px 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .icon-btn {
             background: transparent;
             border: none;
             color: #9aa0a6;
@@ -156,10 +163,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            padding: 6px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: background 0.2s;
         }
 
-        .dock-btn svg {
+        .icon-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .icon-btn svg {
             width: 20px;
             height: 20px;
             fill: #9aa0a6;
@@ -172,28 +187,41 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             outline: none;
             color: #ffffff;
             font-size: 15px;
-            padding: 6px 0;
+            padding: 8px 0;
+            min-width: 0;
         }
 
+        .dock-input::placeholder {
+            color: #80868b;
+        }
+
+        /* FIXED SEND BUTTON */
         .send-btn {
             background: #2563eb;
             border: none;
             border-radius: 50%;
-            width: 38px;
-            height: 38px;
+            width: 40px;
+            height: 40px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            transition: transform 0.1s;
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
         }
 
         .send-btn svg {
             width: 18px;
             height: 18px;
             fill: #ffffff;
+            margin-left: 2px;
         }
 
+        /* 3D Studio Section */
         .studio-card {
             background: #18181b;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -242,7 +270,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <p class="subtext">Ask or speak anything to Tringo AI!</p>
 
             <div class="chat-box" id="chatBox">
-                <div class="message ai-message">Hello Jamshed! How can I assist you today?</div>
+                <div class="message ai-message">Hello Jamshed! How can I help you today?</div>
             </div>
         </div>
 
@@ -258,18 +286,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- FIXED GEMINI INPUT DOCK -->
-    <div class="bottom-dock" id="bottomDock">
-        <button class="dock-btn" title="Add attachment">
-            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-        </button>
-        <input type="text" class="dock-input" id="msgInput" placeholder="Message Tringo AI..." onkeypress="handleKeyPress(event)">
-        <button class="dock-btn" onclick="toggleVoiceInput()" title="Voice input">
-            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-        </button>
-        <button class="send-btn" onclick="sendMessage()" title="Send Message">
-            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        </button>
+    <!-- GEMINI CAPSULE BOTTOM DOCK -->
+    <div class="dock-wrapper" id="dockWrapper">
+        <div class="gemini-dock">
+            <!-- Add Attachment Button -->
+            <button class="icon-btn" title="Add File">
+                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            </button>
+            
+            <!-- Message Input -->
+            <input type="text" class="dock-input" id="msgInput" placeholder="Message Tringo AI..." onkeypress="handleKeyPress(event)">
+            
+            <!-- Live Voice Chat Button -->
+            <button class="icon-btn" onclick="toggleVoiceInput()" title="Live Voice Chat">
+                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            </button>
+
+            <!-- Properly Aligned Send Button -->
+            <button class="send-btn" onclick="sendMessage()" title="Send">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
     </div>
 
     <script>
@@ -282,11 +319,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if(tabId === 'chatTab') {
                 document.getElementById('chatTab').classList.add('active-tab');
                 document.getElementById('btnChat').classList.add('active');
-                document.getElementById('bottomDock').style.display = 'flex';
+                document.getElementById('dockWrapper').style.display = 'flex';
             } else {
                 document.getElementById('studioTab').classList.add('active-tab');
                 document.getElementById('btnStudio').classList.add('active');
-                document.getElementById('bottomDock').style.display = 'none';
+                document.getElementById('dockWrapper').style.display = 'none';
             }
         }
 
@@ -324,7 +361,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         function toggleVoiceInput() {
             if (!('webkitSpeechRecognition' in window)) {
-                alert("Voice recognition not supported in this browser");
+                alert("Voice recognition is not supported on this browser.");
                 return;
             }
             const rec = new webkitSpeechRecognition();
