@@ -1,4 +1,4 @@
-/* Base & Layout */
+/* Base Reset */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -9,50 +9,56 @@
 html, body {
     width: 100%;
     height: 100%;
-    background-color: #0e0e10;
+    background-color: #0b0b0e;
     color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     overflow: hidden;
 }
 
+/* Top Bar Navigation */
 .top-nav {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    padding: 12px;
-    background: #0e0e10;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #0b0b0e;
+    border-bottom: 1px solid #1a1a22;
 }
 
 .nav-btn {
-    padding: 8px 18px;
+    padding: 8px 20px;
     border-radius: 20px;
-    background: #1a1a1e;
-    border: 1px solid #2d2d32;
-    color: #88888e;
-    font-size: 0.85rem;
+    background: #141419;
+    border: 1px solid #242430;
+    color: #8e8e99;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .nav-btn.active {
-    background: #282830;
+    background: #1f1d2b;
     color: #ffffff;
     border-color: #a855f7;
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
 }
 
+/* Container Panels */
 .main-container {
-    height: calc(100vh - 130px);
+    height: calc(100vh - 135px);
+    width: 100%;
+    overflow-y: auto;
+    padding: 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px 16px;
-    overflow-y: auto;
 }
 
 .tab-content {
     display: none;
     width: 100%;
-    max-width: 600px;
+    max-width: 500px;
     flex-direction: column;
     align-items: center;
 }
@@ -61,22 +67,185 @@ html, body {
     display: flex;
 }
 
+/* Headings */
 .greeting {
     font-size: 1.8rem;
-    font-weight: 700;
-    margin-top: 20px;
-    background: linear-gradient(90deg, #a855f7, #6366f1);
+    font-weight: 800;
+    margin-top: 10px;
+    background: linear-gradient(135deg, #a855f7, #6366f1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-align: center;
 }
 
 .subtext {
-    font-size: 0.9rem;
-    color: #66666e;
-    margin-top: 6px;
-    margin-bottom: 24px;
+    font-size: 0.85rem;
+    color: #6e6e7a;
+    margin-top: 4px;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
+/* 3D Studio Cards Design */
+.studio-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.studio-card {
+    background: #131318;
+    border: 1px solid #22222c;
+    border-radius: 20px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(168, 85, 247, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.header-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: #a855f7;
+    stroke: #a855f7;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.card-desc {
+    font-size: 0.78rem;
+    color: #71717a;
+    margin-top: 2px;
+}
+
+.studio-input {
+    width: 100%;
+    background: #09090c;
+    border: 1px solid #272734;
+    border-radius: 14px;
+    padding: 14px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+}
+
+.studio-input:focus {
+    border-color: #a855f7;
+}
+
+.upload-area {
+    border: 2px dashed #2a2a38;
+    background: #09090c;
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.upload-area:hover {
+    border-color: #a855f7;
+    background: rgba(168, 85, 247, 0.03);
+}
+
+.upload-icon-svg {
+    width: 32px;
+    height: 32px;
+    stroke: #8e8e99;
+    fill: none;
+}
+
+.upload-text {
+    font-size: 0.85rem;
+    color: #a1a1aa;
+    font-weight: 500;
+}
+
+.preview-wrapper {
+    position: relative;
+    width: 100%;
+    display: none;
+    justify-content: center;
+}
+
+.img-preview {
+    max-width: 100%;
+    max-height: 180px;
+    border-radius: 10px;
+    object-fit: contain;
+}
+
+.remove-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #ef4444;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.gen-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+    border: none;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.35);
+    transition: transform 0.1s;
+}
+
+.gen-btn:active {
+    transform: scale(0.98);
+}
+
+/* Chat UI Messages */
 .chat-box {
     width: 100%;
     display: flex;
@@ -86,20 +255,20 @@ html, body {
 
 .message {
     padding: 12px 16px;
-    border-radius: 16px;
-    font-size: 0.95rem;
-    line-height: 1.4;
+    border-radius: 18px;
+    font-size: 0.92rem;
+    line-height: 1.45;
     max-width: 85%;
 }
 
 .ai-message {
-    background: #18181c;
-    border: 1px solid #282830;
+    background: #141419;
+    border: 1px solid #22222c;
     align-self: flex-start;
     color: #e4e4e7;
 }
 
-/* Gemini Capsule Floating Dock Fix */
+/* Capsule Dock */
 .dock-wrapper {
     position: fixed;
     bottom: 20px;
@@ -115,14 +284,14 @@ html, body {
     width: 100%;
     max-width: 500px;
     height: 52px;
-    background: #18181c;
-    border: 1px solid #2d2d35;
+    background: #141419;
+    border: 1px solid #272735;
     border-radius: 28px;
     display: flex;
     align-items: center;
-    padding: 4px 6px 4px 10px;
+    padding: 4px 6px 4px 12px;
     gap: 6px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
 }
 
 .dock-input {
@@ -132,7 +301,7 @@ html, body {
     border: none;
     outline: none;
     color: #ffffff;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
 }
 
 .dock-input::placeholder {
@@ -203,4 +372,4 @@ html, body {
     height: 16px;
     fill: #ffffff;
     margin-left: 2px;
-}
+    }
