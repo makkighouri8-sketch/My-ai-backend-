@@ -23,13 +23,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             -webkit-tap-highlight-color: transparent;
         }
 
-        body {
+        html, body {
             background: #09090b;
             color: #f2f2f7;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
 
         .top-nav {
@@ -127,7 +131,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border-top-right-radius: 4px;
         }
 
-        /* GEMINI INPUT DOCK */
+        /* GEMINI DOCK */
         .dock-wrapper {
             position: fixed;
             bottom: 14px;
@@ -164,7 +168,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             height: 36px;
             border-radius: 50%;
             flex-shrink: 0;
-            transition: background 0.2s;
         }
 
         .icon-btn svg {
@@ -173,7 +176,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             fill: #9aa0a6;
         }
 
-        /* WHITE OUTLINE LIVE BUTTON */
         .live-btn {
             background: transparent;
             border: 1.5px solid #ffffff;
@@ -185,11 +187,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             justify-content: center;
             cursor: pointer;
             flex-shrink: 0;
-            transition: transform 0.2s;
-        }
-
-        .live-btn:active {
-            transform: scale(0.92);
         }
 
         .live-btn svg {
@@ -240,18 +237,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin-left: 2px;
         }
 
-        /* LIVE GEMINI CALL SCREEN OVERLAY */
+        /* LIVE CALL SCREEN OVERLAY */
         .live-overlay {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background: #09090b;
-            z-index: 1000;
+            z-index: 9999;
             display: none;
             flex-direction: column;
             justify-content: space-between;
+            align-items: center;
             padding: 40px 24px;
         }
 
@@ -260,20 +258,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             align-items: center;
             justify-content: space-between;
             width: 100%;
+            max-width: 500px;
         }
 
         .live-status {
-            font-size: 17px;
+            font-size: 18px;
             font-weight: 500;
             color: #a1a1aa;
         }
 
         .top-close-btn {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.12);
             border: none;
             color: #ffffff;
-            width: 38px;
-            height: 38px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -282,12 +281,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .top-close-btn svg {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             fill: #ffffff;
         }
 
-        /* CENTER NEON ORB */
         .orb-wrapper {
             display: flex;
             align-items: center;
@@ -296,8 +294,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .neon-orb {
-            width: 120px;
-            height: 120px;
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #c084fc, #9333ea, #3b82f6);
             box-shadow: 0 0 50px #9333ea, 0 0 90px #3b82f6;
@@ -308,55 +306,44 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             0% {
                 transform: scale(0.95);
                 box-shadow: 0 0 35px #9333ea, 0 0 70px #3b82f6;
-                border-radius: 50%;
             }
             50% {
                 transform: scale(1.15);
                 box-shadow: 0 0 65px #c084fc, 0 0 110px #60a5fa;
-                border-radius: 45% 55% 50% 50% / 55% 45% 55% 45%;
             }
             100% {
                 transform: scale(0.95);
                 box-shadow: 0 0 35px #9333ea, 0 0 70px #3b82f6;
-                border-radius: 50%;
             }
         }
 
-        /* BOTTOM CALL CONTROLS BAR */
         .call-controls-bar {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 24px;
             background: #18181b;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px 28px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 12px 32px;
             border-radius: 40px;
-            margin: 0 auto;
-            max-width: 280px;
-            width: 100%;
+            margin-bottom: 20px;
         }
 
         .call-btn {
             background: #27272a;
             border: none;
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-        }
-
-        .call-btn:active {
-            transform: scale(0.92);
         }
 
         .call-btn svg {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             fill: #ffffff;
         }
 
@@ -367,8 +354,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .end-call-btn {
             background: #dc2626;
             border: none;
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -377,8 +364,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .end-call-btn svg {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             fill: #ffffff;
         }
 
@@ -440,7 +427,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <p class="subtext">Generate high quality 3D Videos & Animations</p>
 
             <div class="studio-card">
-                <textarea class="studio-input" id="promptInput" placeholder="Describe the 3D scene you want to generate..."></textarea>
+                <textarea class="studio-input" placeholder="Describe the 3D scene..."></textarea>
                 <button class="gen-btn" onclick="alert('3D Studio feature coming soon!')">⚡ Generate 3D Video</button>
             </div>
         </div>
@@ -456,12 +443,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <input type="text" class="dock-input" id="msgInput" placeholder="Message Tringo AI..." oninput="handleInputToggle()" onkeypress="handleKeyPress(event)">
             
             <div class="voice-group" id="voiceGroup">
-                <!-- Voice to Text Mic -->
                 <button class="icon-btn" onclick="toggleVoiceInput()" title="Voice to Text">
                     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </button>
 
-                <!-- White Outline Live Chat Button -->
                 <button class="live-btn" onclick="startLiveVoice()" title="Live Voice Mode">
                     <svg viewBox="0 0 24 24">
                         <path d="M12 3v18m-4-14v10m8-10v10m-12-6v2m16-2v2" stroke-width="2.2" stroke-linecap="round"/>
@@ -469,14 +454,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </button>
             </div>
 
-            <!-- Send Button -->
             <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
                 <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
         </div>
     </div>
 
-    <!-- LIVE CALL OVERLAY UI -->
+    <!-- LIVE CALL OVERLAY -->
     <div class="live-overlay" id="liveOverlay">
         <div class="live-top-bar">
             <span class="live-status" id="liveStatus">Listening...</span>
@@ -490,11 +474,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
 
         <div class="call-controls-bar">
-            <!-- Mute Button -->
             <button class="call-btn" id="muteBtn" onclick="toggleMute()" title="Mute/Unmute">
                 <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
             </button>
-            <!-- End Call Button -->
             <button class="end-call-btn" onclick="stopLiveVoice()" title="End Call">
                 <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
             </button>
@@ -629,4 +611,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 muteBtn.classList.add('muted');
                 document.getElementById('liveStatus').innerText = "Muted";
                 if (liveRecognition) liveRecognition.stop();
-     
+            } else {
+                muteBtn.classList.remove('muted');
+                document.getElementById('liveStatus').innerText = "Listening...";
+                if (liveRecognition) liveRecognition.start();
+            }
+        }
+
+        function speakAIResponse(text) {
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.onend = function() {
+                if (!isMuted && document.getElementById('liveOverlay').style.display === 'flex') {
+                    document.getElementById('liveStatus').innerText = "Listening...";
+                    liveRecognition.start();
+                }
+            };
+            synth.spe
