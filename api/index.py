@@ -173,7 +173,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             fill: #9aa0a6;
         }
 
-        /* WHITE OUTLINE LIVE CHAT BUTTON */
+        /* WHITE OUTLINE LIVE BUTTON */
         .live-btn {
             background: transparent;
             border: 1.5px solid #ffffff;
@@ -185,12 +185,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             justify-content: center;
             cursor: pointer;
             flex-shrink: 0;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
         }
 
         .live-btn:active {
             transform: scale(0.92);
-            box-shadow: 0 0 10px rgba(255,255,255,0.4);
         }
 
         .live-btn svg {
@@ -241,7 +240,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin-left: 2px;
         }
 
-        /* NEON WAVE LIVE CHAT OVERLAY */
+        /* LIVE NEON CIRCULAR ORB OVERLAY */
         .live-overlay {
             position: fixed;
             top: 0;
@@ -264,40 +263,51 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             letter-spacing: 0.5px;
         }
 
-        .wave-box {
+        /* GOL ORB / LARGE NEON GLOW DOT */
+        .orb-wrapper {
+            position: relative;
+            width: 140px;
+            height: 140px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            height: 120px;
+            justify-content: center;
         }
 
-        .wave-bar {
-            width: 8px;
-            height: 30px;
-            background: linear-gradient(180deg, #9333ea, #3b82f6);
-            border-radius: 10px;
-            animation: wave 1.2s infinite ease-in-out;
-            box-shadow: 0 0 15px #9333ea;
+        .neon-orb {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #c084fc, #9333ea, #3b82f6);
+            box-shadow: 0 0 40px #9333ea, 0 0 80px #3b82f6;
+            animation: orbPulse 2s infinite ease-in-out;
         }
 
-        .wave-bar:nth-child(2) { animation-delay: 0.2s; }
-        .wave-bar:nth-child(3) { animation-delay: 0.4s; }
-        .wave-bar:nth-child(4) { animation-delay: 0.6s; }
-        .wave-bar:nth-child(5) { animation-delay: 0.8s; }
-
-        @keyframes wave {
-            0%, 100% { height: 25px; }
-            50% { height: 90px; }
+        @keyframes orbPulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 30px #9333ea, 0 0 60px #3b82f6;
+                border-radius: 50%;
+            }
+            50% {
+                transform: scale(1.15);
+                box-shadow: 0 0 60px #c084fc, 0 0 100px #60a5fa;
+                border-radius: 45% 55% 50% 50% / 55% 45% 55% 45%;
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 30px #9333ea, 0 0 60px #3b82f6;
+                border-radius: 50%;
+            }
         }
 
         .close-live-btn {
-            background: #27272a;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: #1c1c1e;
+            border: 1px solid rgba(255,255,255,0.15);
             color: #fff;
-            padding: 14px 32px;
+            padding: 14px 36px;
             border-radius: 30px;
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
         }
 
@@ -365,7 +375,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- GEMINI CAPSULE BOTTOM DOCK -->
+    <!-- CAPSULE BOTTOM DOCK -->
     <div class="dock-wrapper" id="dockWrapper">
         <div class="gemini-dock">
             <button class="icon-btn" title="Add File">
@@ -380,7 +390,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </button>
 
-                <!-- White Outline Live Chat Wave Button -->
+                <!-- White Outline Live Chat Button -->
                 <button class="live-btn" onclick="startLiveVoice()" title="Live Voice Mode">
                     <svg viewBox="0 0 24 24">
                         <path d="M12 3v18m-4-14v10m8-10v10m-12-6v2m16-2v2" stroke-width="2.2" stroke-linecap="round"/>
@@ -395,16 +405,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- LIVE NEON WAVE SCREEN OVERLAY -->
+    <!-- LIVE NEON GOL ORB SCREEN OVERLAY -->
     <div class="live-overlay" id="liveOverlay">
         <div class="live-status" id="liveStatus">Listening...</div>
-        <div class="wave-box">
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
+        
+        <div class="orb-wrapper">
+            <div class="neon-orb" id="neonOrb"></div>
         </div>
+
         <button class="close-live-btn" onclick="stopLiveVoice()">End Live Chat</button>
     </div>
 
@@ -490,7 +498,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             };
         }
 
-        /* LIVE VOICE CHAT LOGIC WITH NEON WAVES & SPEAK RESPONSE */
         function startLiveVoice() {
             if (!('webkitSpeechRecognition' in window)) {
                 alert("Live Voice is not supported on this browser.");
@@ -569,4 +576,4 @@ def chat_api():
 
 if __name__ == '__main__':
     app.run()
-        
+    
