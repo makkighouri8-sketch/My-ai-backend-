@@ -240,75 +240,146 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin-left: 2px;
         }
 
-        /* LIVE NEON CIRCULAR ORB OVERLAY */
+        /* LIVE GEMINI CALL SCREEN OVERLAY */
         .live-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: #000000;
+            background: #09090b;
             z-index: 1000;
             display: none;
             flex-direction: column;
+            justify-content: space-between;
+            padding: 40px 24px;
+        }
+
+        .live-top-bar {
+            display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 60px 20px;
+            width: 100%;
         }
 
         .live-status {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 17px;
+            font-weight: 500;
             color: #a1a1aa;
-            letter-spacing: 0.5px;
         }
 
-        /* GOL ORB / LARGE NEON GLOW DOT */
-        .orb-wrapper {
-            position: relative;
-            width: 140px;
-            height: 140px;
+        .top-close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #ffffff;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+        }
+
+        .top-close-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #ffffff;
+        }
+
+        /* CENTER NEON ORB */
+        .orb-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
         }
 
         .neon-orb {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #c084fc, #9333ea, #3b82f6);
-            box-shadow: 0 0 40px #9333ea, 0 0 80px #3b82f6;
+            box-shadow: 0 0 50px #9333ea, 0 0 90px #3b82f6;
             animation: orbPulse 2s infinite ease-in-out;
         }
 
         @keyframes orbPulse {
             0% {
                 transform: scale(0.95);
-                box-shadow: 0 0 30px #9333ea, 0 0 60px #3b82f6;
+                box-shadow: 0 0 35px #9333ea, 0 0 70px #3b82f6;
                 border-radius: 50%;
             }
             50% {
                 transform: scale(1.15);
-                box-shadow: 0 0 60px #c084fc, 0 0 100px #60a5fa;
+                box-shadow: 0 0 65px #c084fc, 0 0 110px #60a5fa;
                 border-radius: 45% 55% 50% 50% / 55% 45% 55% 45%;
             }
             100% {
                 transform: scale(0.95);
-                box-shadow: 0 0 30px #9333ea, 0 0 60px #3b82f6;
+                box-shadow: 0 0 35px #9333ea, 0 0 70px #3b82f6;
                 border-radius: 50%;
             }
         }
 
-        .close-live-btn {
-            background: #1c1c1e;
-            border: 1px solid rgba(255,255,255,0.15);
-            color: #fff;
-            padding: 14px 36px;
-            border-radius: 30px;
-            font-size: 15px;
-            font-weight: 600;
+        /* BOTTOM CALL CONTROLS BAR */
+        .call-controls-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            background: #18181b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 28px;
+            border-radius: 40px;
+            margin: 0 auto;
+            max-width: 280px;
+            width: 100%;
+        }
+
+        .call-btn {
+            background: #27272a;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .call-btn:active {
+            transform: scale(0.92);
+        }
+
+        .call-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: #ffffff;
+        }
+
+        .call-btn.muted {
+            background: #ef4444;
+        }
+
+        .end-call-btn {
+            background: #dc2626;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .end-call-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: #ffffff;
         }
 
         .studio-card {
@@ -405,19 +476,34 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- LIVE NEON GOL ORB SCREEN OVERLAY -->
+    <!-- LIVE CALL OVERLAY UI -->
     <div class="live-overlay" id="liveOverlay">
-        <div class="live-status" id="liveStatus">Listening...</div>
-        
+        <div class="live-top-bar">
+            <span class="live-status" id="liveStatus">Listening...</span>
+            <button class="top-close-btn" onclick="stopLiveVoice()" title="Close Call">
+                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+        </div>
+
         <div class="orb-wrapper">
             <div class="neon-orb" id="neonOrb"></div>
         </div>
 
-        <button class="close-live-btn" onclick="stopLiveVoice()">End Live Chat</button>
+        <div class="call-controls-bar">
+            <!-- Mute Button -->
+            <button class="call-btn" id="muteBtn" onclick="toggleMute()" title="Mute/Unmute">
+                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            </button>
+            <!-- End Call Button -->
+            <button class="end-call-btn" onclick="stopLiveVoice()" title="End Call">
+                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+        </div>
     </div>
 
     <script>
         let liveRecognition;
+        let isMuted = false;
 
         function handleInputToggle() {
             const input = document.getElementById("msgInput");
@@ -506,14 +592,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             document.getElementById('liveOverlay').style.display = 'flex';
             document.getElementById('liveStatus').innerText = "Listening...";
+            isMuted = false;
+            document.getElementById('muteBtn').classList.remove('muted');
 
             liveRecognition = new webkitSpeechRecognition();
             liveRecognition.lang = 'en-US';
             liveRecognition.continuous = false;
 
             liveRecognition.onresult = async function(e) {
+                if (isMuted) return;
                 const spokenText = e.results[0][0].transcript;
-                document.getElementById('liveStatus').innerText = "Tringo AI Thinking...";
+                document.getElementById('liveStatus').innerText = "Thinking...";
 
                 try {
                     const res = await fetch('/api/chat', {
@@ -523,7 +612,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     });
                     const data = await res.json();
                     
-                    document.getElementById('liveStatus').innerText = "Tringo AI Speaking...";
+                    document.getElementById('liveStatus').innerText = "Speaking...";
                     speakAIResponse(data.reply);
                 } catch(err) {
                     document.getElementById('liveStatus').innerText = "Error processing voice.";
@@ -533,47 +622,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             liveRecognition.start();
         }
 
-        function speakAIResponse(text) {
-            const synth = window.speechSynthesis;
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.onend = function() {
-                document.getElementById('liveStatus').innerText = "Listening...";
-                if (document.getElementById('liveOverlay').style.display === 'flex') {
-                    liveRecognition.start();
-                }
-            };
-            synth.speak(utterance);
-        }
-
-        function stopLiveVoice() {
-            document.getElementById('liveOverlay').style.display = 'none';
-            if (liveRecognition) liveRecognition.stop();
-            window.speechSynthesis.cancel();
-        }
-    </script>
-</body>
-</html>"""
-
-@app.route('/')
-def home():
-    return render_template_string(HTML_TEMPLATE)
-
-@app.route('/api/chat', methods=['POST'])
-def chat_api():
-    try:
-        data = request.json
-        user_message = data.get("message", "")
-        
-        if not GEMINI_API_KEY:
-            return jsonify({"reply": "API Key missing in environment variables!"})
-
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(user_message)
-        
-        return jsonify({"reply": response.text})
-    except Exception as e:
-        return jsonify({"reply": f"Error: {str(e)}"})
-
-if __name__ == '__main__':
-    app.run()
-    
+        function toggleMute() {
+            isMuted = !isMuted;
+            const muteBtn = document.getElementById('muteBtn');
+            if (isMuted) {
+                muteBtn.classList.add('muted');
+                document.getElementById('liveStatus').innerText = "Muted";
+                if (liveRecognition) liveRecognition.stop();
+     
