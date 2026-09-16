@@ -32,7 +32,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             overflow: hidden;
         }
 
-        /* Top Navigation */
         .top-nav {
             display: flex;
             align-items: center;
@@ -61,7 +60,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: #ffffff;
         }
 
-        /* Main Scrollable Content */
         .main-container {
             flex: 1;
             display: flex;
@@ -96,7 +94,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin-bottom: 20px;
         }
 
-        /* Chat Messages Container */
         .chat-box {
             flex: 1;
             display: flex;
@@ -130,7 +127,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border-top-right-radius: 4px;
         }
 
-        /* EXACT GEMINI STYLE INPUT CAPSULE DOCK */
+        /* DYNAMIC CAPSULE DOCK */
         .dock-wrapper {
             position: fixed;
             bottom: 14px;
@@ -148,10 +145,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background: #1e1f23;
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 28px;
-            padding: 6px 10px 6px 14px;
+            padding: 6px 8px 6px 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
         }
 
@@ -167,11 +164,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             height: 36px;
             border-radius: 50%;
             flex-shrink: 0;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.15s;
         }
 
         .icon-btn:active {
             background: rgba(255, 255, 255, 0.1);
+            transform: scale(0.92);
         }
 
         .icon-btn svg {
@@ -195,15 +193,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: #80868b;
         }
 
-        /* FIXED SEND BUTTON */
+        /* DYNAMIC VISIBILITY CONTROLS */
+        .voice-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .send-btn {
+            display: none; /* Initially hidden */
             background: #2563eb;
             border: none;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             cursor: pointer;
-            display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
@@ -221,7 +225,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin-left: 2px;
         }
 
-        /* 3D Studio Section */
         .studio-card {
             background: #18181b;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -286,30 +289,52 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- GEMINI CAPSULE BOTTOM DOCK -->
+    <!-- DYNAMIC GEMINI INPUT CAPSULE -->
     <div class="dock-wrapper" id="dockWrapper">
         <div class="gemini-dock">
-            <!-- Add Attachment Button -->
+            <!-- Add Button -->
             <button class="icon-btn" title="Add File">
                 <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
             </button>
             
-            <!-- Message Input -->
-            <input type="text" class="dock-input" id="msgInput" placeholder="Message Tringo AI..." onkeypress="handleKeyPress(event)">
+            <!-- Dynamic Input Box -->
+            <input type="text" class="dock-input" id="msgInput" placeholder="Message Tringo AI..." oninput="handleInputToggle()" onkeypress="handleKeyPress(event)">
             
-            <!-- Live Voice Chat Button -->
-            <button class="icon-btn" onclick="toggleVoiceInput()" title="Live Voice Chat">
-                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-            </button>
+            <!-- Voice Group (Visible when Empty) -->
+            <div class="voice-group" id="voiceGroup">
+                <!-- Voice to Text Mic Button -->
+                <button class="icon-btn" onclick="toggleVoiceInput()" title="Voice to Text">
+                    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                </button>
 
-            <!-- Properly Aligned Send Button -->
-            <button class="send-btn" onclick="sendMessage()" title="Send">
+                <!-- Live Voice Chat Wave Button -->
+                <button class="icon-btn" onclick="alert('Live Voice Mode Active')" title="Live Voice Chat">
+                    <svg viewBox="0 0 24 24"><path d="M12 3v18m-4-14v10m8-10v10m-12-6v2m16-2v2" stroke="#9aa0a6" stroke-width="2.2" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+
+            <!-- Send Button (Visible when Typing) -->
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
                 <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
         </div>
     </div>
 
     <script>
+        function handleInputToggle() {
+            const input = document.getElementById("msgInput");
+            const voiceGroup = document.getElementById("voiceGroup");
+            const sendBtn = document.getElementById("sendBtn");
+
+            if (input.value.trim().length > 0) {
+                voiceGroup.style.display = "none";
+                sendBtn.style.display = "flex";
+            } else {
+                voiceGroup.style.display = "flex";
+                sendBtn.style.display = "none";
+            }
+        }
+
         function switchTab(tabId) {
             document.getElementById('chatTab').classList.remove('active-tab');
             document.getElementById('studioTab').classList.remove('active-tab');
@@ -339,6 +364,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const chatBox = document.getElementById("chatBox");
             chatBox.innerHTML += `<div class="message user-message">${text}</div>`;
             input.value = "";
+            handleInputToggle();
             chatBox.scrollTop = chatBox.scrollHeight;
 
             const loadingId = "load_" + Date.now();
@@ -369,6 +395,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             rec.start();
             rec.onresult = function(e) {
                 document.getElementById("msgInput").value = e.results[0][0].transcript;
+                handleInputToggle();
                 sendMessage();
             };
         }
@@ -398,4 +425,3 @@ def chat_api():
 
 if __name__ == '__main__':
     app.run()
-    
