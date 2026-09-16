@@ -16,7 +16,7 @@ function switchTab(tabId) {
     }
 }
 
-// Toggle Send button vs Mic/Live icons dynamically
+// Dynamic input icon toggle (Send vs Mic/Live)
 function handleInputToggle() {
     const input = document.getElementById('msgInput');
     const sendBtn = document.getElementById('sendBtn');
@@ -33,22 +33,23 @@ function handleInputToggle() {
     }
 }
 
-// Handle Enter key for sending messages
 function handleKeyPress(event) {
     if (event.key === 'Enter') {
-        sendMessage();
+        sendMessage(event);
     }
 }
 
-// Send Message logic
-async function sendMessage() {
+// Send Message (Keyboard open rehney ki fix ke sath)
+async function sendMessage(event) {
+    if (event) event.preventDefault();
+    
     const input = document.getElementById('msgInput');
     const message = input.value.trim();
     if (!message) return;
 
     const chatBox = document.getElementById('chatBox');
     
-    // Append User Message
+    // User Message DOM
     const userDiv = document.createElement('div');
     userDiv.className = 'message user-message';
     userDiv.style.alignSelf = 'flex-end';
@@ -57,12 +58,13 @@ async function sendMessage() {
     userDiv.textContent = message;
     chatBox.appendChild(userDiv);
 
-    // Clear Input and reset buttons
+    // Clear input & retain focus (Keep Keyboard OPEN)
     input.value = '';
     handleInputToggle();
+    input.focus();
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // AI Loading Indicator
+    // AI Response Loader
     const aiDiv = document.createElement('div');
     aiDiv.className = 'message ai-message';
     aiDiv.textContent = 'Thinking...';
@@ -83,10 +85,23 @@ async function sendMessage() {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Initialize button visibility on page load
+// Live Call Animation Toggle Function
+function startLiveCall() {
+    const overlay = document.getElementById('liveOverlay');
+    if (overlay) {
+        overlay.classList.add('active');
+    }
+}
+
+function stopLiveCall() {
+    const overlay = document.getElementById('liveOverlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     handleInputToggle();
-    
     const input = document.getElementById('msgInput');
     if (input) {
         input.addEventListener('input', handleInputToggle);
