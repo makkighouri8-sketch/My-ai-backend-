@@ -1,4 +1,199 @@
-/* LOGIN MODAL OVERLAY (Temporarily Hidden) */
-.login-modal {
-    display: none !important;
+/* Base & Layout */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background-color: #0e0e10;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+}
+
+.top-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    background: #0e0e10;
+}
+
+.nav-btn {
+    padding: 8px 18px;
+    border-radius: 20px;
+    background: #1a1a1e;
+    border: 1px solid #2d2d32;
+    color: #88888e;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nav-btn.active {
+    background: #282830;
+    color: #ffffff;
+    border-color: #a855f7;
+}
+
+.main-container {
+    height: calc(100vh - 130px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+    overflow-y: auto;
+}
+
+.tab-content {
+    display: none;
+    width: 100%;
+    max-width: 600px;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tab-content.active-tab {
+    display: flex;
+}
+
+.greeting {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-top: 20px;
+    background: linear-gradient(90deg, #a855f7, #6366f1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtext {
+    font-size: 0.9rem;
+    color: #66666e;
+    margin-top: 6px;
+    margin-bottom: 24px;
+}
+
+.chat-box {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.message {
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    max-width: 85%;
+}
+
+.ai-message {
+    background: #18181c;
+    border: 1px solid #282830;
+    align-self: flex-start;
+    color: #e4e4e7;
+}
+
+/* Gemini Capsule Floating Dock */
+.dock-wrapper {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 0 16px;
+}
+
+.gemini-dock {
+    width: 100%;
+    max-width: 500px;
+    height: 54px;
+    background: #18181c;
+    border: 1px solid #2d2d35;
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    padding: 4px 8px 4px 14px;
+    gap: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.dock-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    font-size: 0.95rem;
+}
+
+.dock-input::placeholder {
+    color: #52525b;
+}
+
+.icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.icon-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: #a1a1aa;
+}
+
+.voice-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.live-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.live-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #ffffff;
+    fill: none;
+}
+
+.send-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #27272a;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.send-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: #ffffff;
 }
