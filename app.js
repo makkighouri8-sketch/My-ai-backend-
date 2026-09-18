@@ -39,6 +39,9 @@ function handleKeyPress(event) {
     }
 }
 
+// Chat history store karne ke liye (Gemini memory fix)
+let chatHistory = [];
+
 // Send Message (Keyboard open rehney ki fix ke sath)
 async function sendMessage(event) {
     if (event) event.preventDefault();
@@ -75,29 +78,19 @@ async function sendMessage(event) {
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ message: message, history: chatHistory })
         });
         const data = await response.json();
-        aiDiv.textContent = data.reply || "No response received.";
+        const reply = data.reply || "No response received.";
+        aiDiv.textContent = reply;
+
+        // History update karo taake AI ko purani baat yaad rahe
+        chatHistory.push({ role: "user", text: message });
+        chatHistory.push({ role: "model", text: reply });
     } catch (err) {
         aiDiv.textContent = "Error connecting to server.";
     }
     chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// Live Call Animation Toggle Function
-function startLiveCall() {
-    const overlay = document.getElementById('liveOverlay');
-    if (overlay) {
-        overlay.classList.add('active');
-    }
-}
-
-function stopLiveCall() {
-    const overlay = document.getElementById('liveOverlay');
-    if (overlay) {
-        overlay.classList.remove('active');
-    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
