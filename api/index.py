@@ -79,7 +79,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
 
         <div class="orb-wrapper">
-            <div class="neon-orb" id="neonOrb"></div>
+            <div class="neon-circle-container" id="neonOrb">
+                <div class="neon-wave"></div>
+                <div class="neon-wave"></div>
+                <div class="neon-wave"></div>
+                <div class="center-glow-orb"></div>
+            </div>
         </div>
 
         <div class="call-controls-bar">
@@ -107,17 +112,24 @@ def chat_api():
     try:
         data = request.json
         user_message = data.get("message", "")
-        
+        history = data.get("history", [])
+
         if not GEMINI_API_KEY:
             return jsonify({"reply": "API Key missing in environment variables!"})
 
         model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(user_message)
-        
+
+        gemini_history = []
+        for msg in history:
+            role = "user" if msg.get("role") == "user" else "model"
+            gemini_history.append({"role": role, "parts": [msg.get("text", "")]})
+
+        chat = model.start_chat(history=gemini_history)
+        response = chat.send_message(user_message)
+
         return jsonify({"reply": response.text})
     except Exception as e:
         return jsonify({"reply": f"Error: {str(e)}"})
 
 if __name__ == '__main__':
     app.run()
-    
