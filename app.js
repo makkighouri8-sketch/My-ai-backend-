@@ -1,11 +1,7 @@
 // Tab switching logic
 function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active-tab');
-    });
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active-tab'));
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
 
     document.getElementById(tabId).classList.add('active-tab');
 
@@ -16,13 +12,17 @@ function switchTab(tabId) {
     }
 }
 
-// Dynamic input icon toggle (Send vs Mic/Live)
+// Dynamic input toggle & Auto-height adjustment
 function handleInputToggle() {
     const input = document.getElementById('msgInput');
     const sendBtn = document.getElementById('sendBtn');
     const voiceGroup = document.getElementById('voiceGroup');
 
     if (!input || !sendBtn || !voiceGroup) return;
+
+    // Auto resize input if it's a textarea
+    input.style.height = 'auto';
+    input.style.height = (input.scrollHeight) + 'px';
 
     if (input.value.trim().length > 0) {
         sendBtn.style.display = 'flex';
@@ -34,15 +34,45 @@ function handleInputToggle() {
 }
 
 function handleKeyPress(event) {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
         sendMessage(event);
     }
 }
 
-// Chat history store karne ke liye (Gemini memory fix)
+// Chat history store
 let chatHistory = [];
 
-// Send Message (Keyboard open rehney ki fix ke sath)
+// AI Typing Effect Function
+async function typeWriterEffect(element, text) {
+    element.innerHTML = ''; 
+    let formattedText = marked.parse(text); // Markdown to HTML conversion
+    
+    // Smooth insertion with parsed HTML
+    element.innerHTML = formattedText;
+    
+    // Code blocks par syntax highlighting apply karna
+    if (window.hljs) {
+        element.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+    }
+
+    // Modern Copy Button for code blocks
+    element.querySelectorAll('pre').forEach(pre => {
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-code-btn';
+        copyBtn.innerText = 'Copy';
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(pre.querySelector('code').innerText);
+            copyBtn.innerText = 'Copied!';
+            setTimeout(() => copyBtn.innerText = 'Copy', 2000);
+        };
+        pre.appendChild(copyBtn);
+    });
+}
+
+// Send Message logic
 async function sendMessage(event) {
     if (event) event.preventDefault();
     
@@ -55,24 +85,21 @@ async function sendMessage(event) {
     // User Message DOM
     const userDiv = document.createElement('div');
     userDiv.className = 'message user-message';
-    userDiv.style.alignSelf = 'flex-end';
-    userDiv.style.background = '#27272a';
-    userDiv.style.color = '#fff';
     userDiv.textContent = message;
     chatBox.appendChild(userDiv);
 
-    // Clear input & retain focus (Keep Keyboard OPEN)
+    // Reset input
     input.value = '';
     handleInputToggle();
     input.focus();
-    chatBox.scrollTop = chatBox.scrollHeight;
+    chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
 
-    // AI Response Loader
+    // AI Response Loader / Skeleton
     const aiDiv = document.createElement('div');
-    aiDiv.className = 'message ai-message';
-    aiDiv.textContent = 'Thinking...';
+    aiDiv.className = 'message ai-message typing-indicator';
+    aiDiv.innerHTML = '<span>.</span><span>.</span><span>.</span>';
     chatBox.appendChild(aiDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
 
     try {
         const response = await fetch('/api/chat', {
@@ -80,17 +107,25 @@ async function sendMessage(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: message, history: chatHistory })
         });
+        
         const data = await response.json();
         const reply = data.reply || "No response received.";
-        aiDiv.textContent = reply;
 
-        // History update karo taake AI ko purani baat yaad rahe
+        aiDiv.classList.remove('typing-indicator');
+        
+        // Render Markdown & Highlight
+        await typeWriterEffect(aiDiv, reply);
+
+        // Update history
         chatHistory.push({ role: "user", text: message });
         chatHistory.push({ role: "model", text: reply });
+
     } catch (err) {
-        aiDiv.textContent = "Error connecting to server.";
+        aiDiv.classList.remove('typing-indicator');
+        aiDiv.textContent = "Error connecting to server. Please try again.";
     }
-    chatBox.scrollTop = chatBox.scrollHeight;
+
+    chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
