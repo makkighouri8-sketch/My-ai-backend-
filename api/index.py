@@ -17,6 +17,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <!-- Github CSS Files Link -->
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/animations.css">
+
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Syntax Highlighting for Code -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 </head>
 <body>
 
@@ -92,7 +99,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
             </button>
             <button class="end-call-btn" onclick="stopLiveVoice()" title="End Call">
-                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 13.41 12z"/></svg>
             </button>
         </div>
     </div>
@@ -133,3 +140,4 @@ def chat_api():
 
 if __name__ == '__main__':
     app.run()
+            
