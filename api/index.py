@@ -67,7 +67,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <button class="icon-btn" onclick="toggleVoiceInput()" title="Voice Input">
                     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </button>
-                <button class="live-btn" onclick="startLiveVoice()" title="Live AI Call Mode">
+                <button class="live-btn" id="liveChatBtn" onclick="startLiveVoice()" title="Live AI Call Mode">
                     <svg viewBox="0 0 24 24"><path d="M12 3v18m-4-14v10m8-10v10m-12-6v2m16-2v2" stroke-width="2.2" stroke-linecap="round"/></svg>
                 </button>
             </div>
@@ -103,6 +103,32 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </button>
         </div>
     </div>
+
+    <!-- Live Call Fallback & Handler Logic -->
+    <script>
+        function startLiveVoice() {
+            const overlay = document.getElementById('liveOverlay');
+            if (overlay) {
+                overlay.classList.add('active');
+                overlay.style.display = 'flex';
+            }
+        }
+
+        function stopLiveVoice() {
+            const overlay = document.getElementById('liveOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                overlay.style.display = 'none';
+            }
+        }
+
+        function toggleMute() {
+            const status = document.getElementById('liveStatus');
+            if (status) {
+                status.innerText = status.innerText === 'Muted' ? 'Listening...' : 'Muted';
+            }
+        }
+    </script>
 
     <!-- Github JavaScript Files Link -->
     <script src="/app.js"></script>
@@ -140,4 +166,4 @@ def chat_api():
 
 if __name__ == '__main__':
     app.run()
-            
+    
