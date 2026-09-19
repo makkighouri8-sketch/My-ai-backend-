@@ -12,6 +12,25 @@ function switchTab(tabId) {
     }
 }
 
+// Mobile-Friendly Live Chat Wave Toggle
+function setupLiveChatToggle() {
+    const liveChatBtn = document.getElementById('liveChatBtn') || document.querySelector('.live-chat-btn');
+    const neonWaveContainer = document.getElementById('neonWaveContainer') || document.querySelector('.neon-wave-container');
+
+    if (!liveChatBtn || !neonWaveContainer) return;
+
+    function toggleLiveChat(e) {
+        if (e.type === 'touchstart') {
+            e.preventDefault(); // Ghost clicks aur mobile delay roknay ke liye
+        }
+        neonWaveContainer.classList.toggle('active');
+    }
+
+    // Touch aur Click events handle karna
+    liveChatBtn.addEventListener('touchstart', toggleLiveChat, { passive: false });
+    liveChatBtn.addEventListener('click', toggleLiveChat);
+}
+
 // Dynamic input toggle & Auto-height adjustment
 function handleInputToggle() {
     const input = document.getElementById('msgInput');
@@ -130,6 +149,8 @@ async function sendMessage(event) {
 
 document.addEventListener('DOMContentLoaded', () => {
     handleInputToggle();
+    setupLiveChatToggle(); // Live chat handler load hone par activate hoga
+    
     const input = document.getElementById('msgInput');
     if (input) {
         input.addEventListener('input', handleInputToggle);
