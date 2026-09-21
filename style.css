@@ -373,3 +373,165 @@ html, body {
     fill: #ffffff;
     margin-left: 2px;
     }
+
+/* ========================================
+   Live Voice Call Fullscreen Overlay
+   ======================================== */
+.live-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: radial-gradient(ellipse at center, #15131f 0%, #0a0a0d 70%, #000000 100%);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+.live-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+/* Top status bar */
+.live-top-bar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 28px 16px 0;
+    margin-top: env(safe-area-inset-top, 0);
+}
+
+.live-status {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #d4d4d8;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 7px 22px;
+    border-radius: 20px;
+    letter-spacing: 0.4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.live-status::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+    animation: livePulse 1.5s infinite ease-in-out;
+}
+
+.live-overlay.muted .live-status::before {
+    background: #71717a;
+    box-shadow: none;
+    animation: none;
+}
+
+@keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* Live caption text under the orb */
+.live-caption {
+    color: #a1a1aa;
+    font-size: 0.88rem;
+    text-align: center;
+    max-width: 340px;
+    line-height: 1.5;
+    padding: 0 20px;
+    margin-bottom: 20px;
+    min-height: 24px;
+}
+
+/* Orb wrapper fills available vertical space */
+.live-overlay .orb-wrapper {
+    flex-grow: 1;
+}
+
+/* Fixed call control bar at bottom */
+.live-overlay .call-controls-bar {
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    padding: 20px 0 calc(28px + env(safe-area-inset-bottom, 0px));
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.control-btn {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.control-btn:active {
+    transform: scale(0.92);
+}
+
+.control-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: #ffffff;
+}
+
+.mute-btn {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+}
+
+.mute-btn svg {
+    fill: #ffffff;
+}
+
+.mute-btn.muted {
+    background: #e11d48;
+    border-color: #e11d48;
+    box-shadow: 0 0 20px rgba(225, 29, 72, 0.45);
+}
+
+.end-call-btn {
+    width: 70px;
+    height: 70px;
+    background: #ef4444;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+}
+
+.end-call-btn svg {
+    width: 26px;
+    height: 26px;
+    fill: #ffffff;
+    transform: rotate(135deg);
+}
+
+/* Mobile responsive tweaks */
+@media (max-width: 480px) {
+    .control-btn { width: 56px; height: 56px; }
+    .end-call-btn { width: 64px; height: 64px; }
+    .live-overlay .call-controls-bar { gap: 32px; }
+    .live-status { font-size: 0.82rem; padding: 6px 18px; }
+}
+
+@media (max-height: 600px) {
+    .energy-orb { transform: scale(0.75); }
+    .live-top-bar { padding-top: 16px; }
+}

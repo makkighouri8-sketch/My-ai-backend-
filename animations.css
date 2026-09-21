@@ -8,19 +8,24 @@
 
 .energy-orb {
     position: relative;
-    width: 180px;
-    height: 180px;
+    width: 220px;
+    height: 220px;
     display: flex;
     justify-content: center;
     align-items: center;
+    animation: orbFloat 4s infinite ease-in-out;
 }
 
 .orb-core {
-    width: 140px;
-    height: 140px;
-    background: radial-gradient(circle, #f472b6 0%, #d946ef 45%, #8b5cf6 100%);
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, #f9a8d4 0%, #d946ef 40%, #7c3aed 80%, #4c1d95 100%);
     border-radius: 50%;
-    box-shadow: 0 0 40px #ec4899, 0 0 80px #a855f7, inset 0 0 20px #fff;
+    box-shadow:
+        0 0 50px #ec4899,
+        0 0 100px rgba(168, 85, 247, 0.6),
+        0 0 140px rgba(124, 58, 237, 0.35),
+        inset 0 0 30px rgba(255, 255, 255, 0.4);
     animation: orbPulse 2.5s infinite ease-in-out;
     z-index: 2;
 }
@@ -28,22 +33,43 @@
 .orb-energy-ring {
     position: absolute;
     border-radius: 50%;
-    border: 2px solid rgba(244, 114, 182, 0.6);
     box-shadow: 0 0 15px rgba(217, 70, 239, 0.5);
 }
 
 .ring-1 {
-    width: 160px;
-    height: 160px;
+    width: 175px;
+    height: 175px;
+    border: 2px dashed rgba(244, 114, 182, 0.6);
     animation: rotateRing 4s infinite linear;
-    border-style: dashed;
 }
 
 .ring-2 {
-    width: 200px;
-    height: 200px;
+    width: 215px;
+    height: 215px;
+    border: 2px solid rgba(168, 85, 247, 0.35);
     animation: rotateRing 6s infinite reverse linear;
-    border-color: rgba(168, 85, 247, 0.4);
+}
+
+.ring-3 {
+    width: 255px;
+    height: 255px;
+    border: 1px solid rgba(124, 58, 237, 0.22);
+    animation: rotateRing 9s infinite linear, ringPulse 3s infinite ease-in-out;
+}
+
+.live-overlay.muted .orb-core {
+    animation: orbPulseSlow 4s infinite ease-in-out;
+    filter: grayscale(0.5) brightness(0.6);
+    box-shadow:
+        0 0 30px rgba(113, 113, 122, 0.4),
+        0 0 60px rgba(113, 113, 122, 0.2),
+        inset 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+.live-overlay.muted .orb-energy-ring {
+    border-color: rgba(113, 113, 122, 0.25) !important;
+    box-shadow: none;
+    animation-play-state: paused;
 }
 
 @keyframes orbPulse {
@@ -51,28 +77,73 @@
     50% { transform: scale(1.08); filter: brightness(1.3); }
 }
 
+@keyframes orbPulseSlow {
+    0%, 100% { transform: scale(0.92); }
+    50% { transform: scale(1.0); }
+}
+
+@keyframes orbFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
 @keyframes rotateRing {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
+@keyframes ringPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* Call Control Bar */
 .call-controls-bar {
     display: flex;
-    gap: 30px;
+    gap: 40px;
     align-items: center;
 }
 
 .control-btn {
-    width: 60px;
-    height: 60px;
+    width: 62px;
+    height: 62px;
     border-radius: 50%;
     border: none;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.mute-btn { background-color: rgba(255, 255, 255, 0.15); color: #fff; }
-.mute-btn.muted { background-color: #e11d48; }
-.end-call-btn { background-color: #ef4444; color: #fff; }
+.control-btn:active {
+    transform: scale(0.92);
+}
+
+.control-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: #ffffff;
+}
+
+.mute-btn {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.mute-btn.muted {
+    background: #e11d48;
+    border-color: #e11d48;
+    box-shadow: 0 0 20px rgba(225, 29, 72, 0.45);
+}
+
+.end-call-btn {
+    width: 70px;
+    height: 70px;
+    background: #ef4444;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+}
+
+.end-call-btn:active {
+    transform: scale(0.92);
+}
