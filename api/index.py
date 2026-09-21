@@ -82,88 +82,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="live-overlay" id="liveOverlay">
         <div class="live-top-bar">
             <span class="live-status" id="liveStatus">Listening...</span>
-            <button class="top-close-btn" onclick="stopLiveVoice()" title="Close Call">✕</button>
         </div>
 
+        <!-- Center Glowing Energy Orb -->
         <div class="orb-wrapper">
-            <div class="neon-circle-container" id="neonOrb">
-                <div class="neon-wave"></div>
-                <div class="neon-wave"></div>
-                <div class="neon-wave"></div>
-                <div class="center-glow-orb"></div>
-            </div>
-        </div>
-
-        <div class="call-controls-bar">
-            <button class="call-btn" id="muteBtn" onclick="toggleMute()" title="Mute/Unmute">
-                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-            </button>
-            <button class="end-call-btn" onclick="stopLiveVoice()" title="End Call">
-                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 13.41 12z"/></svg>
-            </button>
-        </div>
-    </div>
-
-    <!-- Live Call Fallback & Handler Logic -->
-    <script>
-        function startLiveVoice() {
-            const overlay = document.getElementById('liveOverlay');
-            if (overlay) {
-                overlay.classList.add('active');
-                overlay.style.display = 'flex';
-            }
-        }
-
-        function stopLiveVoice() {
-            const overlay = document.getElementById('liveOverlay');
-            if (overlay) {
-                overlay.classList.remove('active');
-                overlay.style.display = 'none';
-            }
-        }
-
-        function toggleMute() {
-            const status = document.getElementById('liveStatus');
-            if (status) {
-                status.innerText = status.innerText === 'Muted' ? 'Listening...' : 'Muted';
-            }
-        }
-    </script>
-
-    <!-- Github JavaScript Files Link -->
-    <script src="/app.js"></script>
-    <script src="/ai-engine.js"></script>
-</body>
-</html>"""
-
-@app.route('/')
-def home():
-    return render_template_string(HTML_TEMPLATE)
-
-@app.route('/api/chat', methods=['POST'])
-def chat_api():
-    try:
-        data = request.json
-        user_message = data.get("message", "")
-        history = data.get("history", [])
-
-        if not GEMINI_API_KEY:
-            return jsonify({"reply": "API Key missing in environment variables!"})
-
-        model = genai.GenerativeModel('gemini-1.5-flash')
-
-        gemini_history = []
-        for msg in history:
-            role = "user" if msg.get("role") == "user" else "model"
-            gemini_history.append({"role": role, "parts": [msg.get("text", "")]})
-
-        chat = model.start_chat(history=gemini_history)
-        response = chat.send_message(user_message)
-
-        return jsonify({"reply": response.text})
-    except Exception as e:
-        return jsonify({"reply": f"Error: {str(e)}"})
-
-if __name__ == '__main__':
-    app.run()
-    
+            <div class="energy-orb">
+                <div class="orb-core"></div>
+                <div class="orb-energy-ring
