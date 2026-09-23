@@ -137,7 +137,7 @@ async function sendMessage(event) {
 
         // Update history
         chatHistory.push({ role: "user", text: message });
-        chatHistory.push({ role: "model", text: reply });
+        chatHistory.push({ role: "assistant", text: reply });
 
     } catch (err) {
         aiDiv.classList.remove('typing-indicator');

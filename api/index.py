@@ -1,12 +1,11 @@
 from flask import Flask, render_template_string, request, jsonify
 import os
-import google.generativeai as genai
+from openai import OpenAI
 
 app = Flask(__name__, static_folder="../", static_url_path="")
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
@@ -55,7 +54,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- Gemini Capsule Floating Dock -->
+    <!-- Tringo Capsule Floating Dock -->
     <div class="dock-wrapper" id="dockWrapper">
         <div class="gemini-dock">
             <button class="icon-btn" title="Upload Media">
@@ -64,7 +63,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <input type="text" class="dock-input" id="msgInput" placeholder="Ask Tringo AI..." oninput="handleInputToggle()" onkeypress="handleKeyPress(event)">
 
             <div class="voice-group" id="voiceGroup">
-                <button class="icon-btn" onclick="toggleVoiceInput()" title="Voice Input">
+                <button class="icon-btn" id="voiceToggleBtn" onclick="toggleVoiceInput()" title="Voice Input">
                     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </button>
                 <button class="live-btn" id="liveChatBtn" onclick="startLiveVoice()" title="Live AI Call Mode">
@@ -113,11 +112,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <!-- External Scripts -->
     <script src="/app.js"></script>
     <script src="/ai-engine.js"></script>
+    <script src="/voice.js"></script>
 
     <!-- Live Call Overlay Logic -->
     <script>
         let isLiveActive = false;
         let isMuted = false;
+        let liveRecognition = null;
+        let liveIsRecognizing = false;
 
         function startLiveVoice() {
             const overlay = document.getElementById('liveOverlay');
@@ -127,6 +129,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             isMuted = false;
             updateMuteUI();
             updateLiveStatus();
+            startLiveRecognition();
         }
 
         function endLiveVoice() {
@@ -134,6 +137,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (!overlay) return;
             overlay.classList.remove('active');
             isLiveActive = false;
+            stopLiveRecognition();
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
         }
 
         function toggleMute() {
@@ -143,6 +148,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (overlay) overlay.classList.toggle('muted', isMuted);
             updateMuteUI();
             updateLiveStatus();
+            if (isMuted) {
+                stopLiveRecognition();
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+            } else {
+                startLiveRecognition();
+            }
         }
 
         function updateMuteUI() {
@@ -170,6 +181,104 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (!status) return;
             status.textContent = isMuted ? 'Muted' : 'Listening...';
         }
+
+        function startLiveRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition || isMuted) return;
+            if (liveIsRecognizing) return;
+
+            liveRecognition = new SpeechRecognition();
+            liveRecognition.continuous = true;
+            liveRecognition.interimResults = true;
+            liveRecognition.lang = 'en-US';
+
+            let finalTranscript = '';
+            let silenceTimer = null;
+
+            liveRecognition.onresult = (event) => {
+                let interim = '';
+                finalTranscript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interim += event.results[i][0].transcript;
+                    }
+                }
+                const caption = document.getElementById('liveCaption');
+                if (caption) caption.textContent = interim || finalTranscript || 'Listening...';
+
+                if (finalTranscript.trim()) {
+                    if (silenceTimer) clearTimeout(silenceTimer);
+                    silenceTimer = setTimeout(() => {
+                        sendLiveMessage(finalTranscript.trim());
+                        finalTranscript = '';
+                    }, 800);
+                }
+            };
+
+            liveRecognition.onend = () => {
+                liveIsRecognizing = false;
+                if (isLiveActive && !isMuted) {
+                    try { liveRecognition.start(); liveIsRecognizing = true; } catch(e) {}
+                }
+            };
+
+            liveRecognition.onerror = (event) => {
+                liveIsRecognizing = false;
+                if (event.error === 'not-allowed') {
+                    const caption = document.getElementById('liveCaption');
+                    if (caption) caption.textContent = 'Microphone access denied. Please allow mic permission.';
+                }
+            };
+
+            try {
+                liveRecognition.start();
+                liveIsRecognizing = true;
+            } catch(e) {
+                console.error('Live recognition start error:', e);
+            }
+        }
+
+        function stopLiveRecognition() {
+            if (liveRecognition) {
+                try { liveRecognition.stop(); } catch(e) {}
+                liveRecognition = null;
+            }
+            liveIsRecognizing = false;
+        }
+
+        async function sendLiveMessage(text) {
+            const caption = document.getElementById('liveCaption');
+            if (caption) caption.textContent = 'Thinking...';
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, history: [] })
+                });
+                const data = await response.json();
+                const reply = data.reply || 'No response received.';
+                if (caption) caption.textContent = reply;
+                speakText(reply);
+            } catch (err) {
+                if (caption) caption.textContent = 'Connection error. Try again.';
+            }
+        }
+
+        function speakText(text) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US';
+            utter.onend = () => {
+                if (isLiveActive && !isMuted) {
+                    const caption = document.getElementById('liveCaption');
+                    if (caption) caption.textContent = 'Listening... speak now.';
+                }
+            };
+            window.speechSynthesis.speak(utter);
+        }
     </script>
 </body>
 </html>
@@ -189,13 +298,22 @@ def chat():
     if not message:
         return jsonify({"reply": "Please send a message."})
 
+    if not client:
+        return jsonify({"reply": "OpenAI API key is not configured. Please set OPENAI_API_KEY."})
+
     try:
-        model = genai.GenerativeModel("gemini-pro")
-        convo = model.start_chat(history=[
-            {"role": h["role"], "parts": [h["text"]]} for h in history if "role" in h and "text" in h
-        ])
-        convo.send_message(message)
-        reply = convo.last.text if convo.last else "No response received."
+        messages = []
+        for h in history:
+            if "role" in h and "text" in h:
+                role = "assistant" if h["role"] == "model" else h["role"]
+                messages.append({"role": role, "content": h["text"]})
+        messages.append({"role": "user", "content": message})
+
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages
+        )
+        reply = completion.choices[0].message.content or "No response received."
         return jsonify({"reply": reply})
     except Exception as e:
         return jsonify({"reply": f"Tringo AI encountered an error: {str(e)}"})
