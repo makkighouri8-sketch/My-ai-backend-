@@ -5,6 +5,22 @@
       "dest": "/public/avatar.glb"
     },
     {
+      "src": "/manifest.json",
+      "dest": "/manifest.json"
+    },
+    {
+      "src": "/sw.js",
+      "dest": "/sw.js"
+    },
+    {
+      "src": "/icon-(192|512).png",
+      "dest": "/icon-$1.png"
+    },
+    {
+      "src": "/(api/.*)",
+      "dest": "api/index.py"
+    },
+    {
       "src": "/(.*)",
       "dest": "api/index.py"
     }
