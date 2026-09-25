@@ -14,14 +14,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tringo AI</title>
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0b0b0e">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Tringo AI">
-
     <!-- Github CSS Files Link -->
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/animations.css">
@@ -121,15 +113,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <!-- External Scripts -->
     <script src="/app.js"></script>
     <script src="/ai-engine.js"></script>
-
-    <!-- PWA Service Worker -->
-    <script>
-        if ("serviceWorker" in navigator) {
-            window.addEventListener("load", () => {
-                navigator.serviceWorker.register("/sw.js").catch(() => {});
-            });
-        }
-    </script>
 
     <!-- Live Call Overlay Logic -->
     <script>
