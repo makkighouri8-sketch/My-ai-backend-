@@ -21,38 +21,44 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const contents = [
+    const messages = [
+      {
+        role: "system",
+        content: "You are Tringo AI, a helpful and friendly assistant.",
+      },
       ...history
         .filter((h: { role?: string; text?: string }) => h.role && h.text)
         .map((h: { role: string; text: string }) => ({
-          role: h.role === "model" ? "model" : "user",
-          parts: [{ text: h.text }],
+          role: h.role === "model" ? "assistant" : "user",
+          content: h.text,
         })),
-      { role: "user", parts: [{ text: message }] },
+      { role: "user", content: message },
     ];
 
-    const apiKey = Deno.env.get("GEMINI_API_KEY") ?? "";
+    const apiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents }),
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-    );
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages,
+      }),
+    });
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
+    if (!openaiRes.ok) {
       return new Response(
-        JSON.stringify({ reply: `Tringo AI encountered an error: ${geminiRes.status}` }),
+        JSON.stringify({ reply: `Tringo AI encountered an error: ${openaiRes.status}` }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const geminiData = await geminiRes.json();
+    const openaiData = await openaiRes.json();
     const reply =
-      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response received.";
+      openaiData?.choices?.[0]?.message?.content ?? "No response received.";
 
     return new Response(
       JSON.stringify({ reply }),
