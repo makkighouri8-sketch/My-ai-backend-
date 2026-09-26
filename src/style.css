@@ -18,11 +18,17 @@ html, body {
 /* Top Bar Navigation */
 .top-nav {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
     gap: 12px;
     padding: 14px 16px;
     background: #0b0b0e;
     border-bottom: 1px solid #1a1a22;
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 12px;
 }
 
 .nav-btn {
@@ -42,6 +48,84 @@ html, body {
     color: #ffffff;
     border-color: #a855f7;
     box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+}
+
+/* Google Login & User Profile */
+.nav-auth {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.google-login-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: #ffffff;
+    border: none;
+    color: #1f1f1f;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.google-login-btn:hover {
+    background: #f5f5f5;
+    box-shadow: 0 2px 12px rgba(255, 255, 255, 0.15);
+}
+
+.google-login-btn:active {
+    transform: scale(0.97);
+}
+
+.google-login-btn svg {
+    flex-shrink: 0;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-profile img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #a855f7;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+}
+
+.logout-btn {
+    padding: 6px 14px;
+    border-radius: 16px;
+    background: #1a1a22;
+    border: 1px solid #2a2a38;
+    color: #a1a1aa;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.logout-btn:hover {
+    background: #22222c;
+    color: #ffffff;
+    border-color: #ef4444;
+}
+
+@media (max-width: 480px) {
+    .google-login-btn span {
+        display: none;
+    }
+    .google-login-btn {
+        padding: 8px 10px;
+    }
 }
 
 /* Container Panels */
