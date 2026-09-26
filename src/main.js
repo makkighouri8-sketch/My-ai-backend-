@@ -1,7 +1,6 @@
 import { marked } from "marked";
 import "./style.css";
 import "./animations.css";
-import { auth, provider, signInWithPopup, signOut, onAuthStateChanged } from "./firebase.js";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -9,51 +8,6 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 let chatHistory = [];
 let isLiveActive = false;
 let isMuted = false;
-let currentUser = null;
-
-// Google Sign-In
-window.handleGoogleLogin = async function () {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (err) {
-    console.error("Google login failed:", err);
-  }
-};
-
-window.handleLogout = async function () {
-  try {
-    await signOut(auth);
-  } catch (err) {
-    console.error("Logout failed:", err);
-  }
-};
-
-function updateUIForUser(user) {
-  const loginBtn = document.getElementById("googleLoginBtn");
-  const userProfile = document.getElementById("userProfile");
-  const avatar = document.getElementById("userAvatar");
-  const greeting = document.getElementById("greetingText");
-
-  if (user) {
-    currentUser = user;
-    if (loginBtn) loginBtn.style.display = "none";
-    if (userProfile) userProfile.style.display = "flex";
-    if (avatar) avatar.src = user.photoURL || "";
-    if (greeting) {
-      const name = user.displayName?.split(" ")[0] || "there";
-      greeting.textContent = `Hi ${name},`;
-    }
-  } else {
-    currentUser = null;
-    if (loginBtn) loginBtn.style.display = "flex";
-    if (userProfile) userProfile.style.display = "none";
-    if (greeting) greeting.textContent = "Hi there,";
-  }
-}
-
-onAuthStateChanged(auth, (user) => {
-  updateUIForUser(user);
-});
 
 // Tab switching logic
 window.switchTab = function (tabId) {
