@@ -1,3 +1,5 @@
+import { GoogleGenAI } from "https://esm.sh/@google/genai@1.0.0";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -21,44 +23,29 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const messages = [
-      {
-        role: "system",
-        content: "You are Tringo AI, a helpful and friendly assistant.",
-      },
-      ...history
-        .filter((h: { role?: string; text?: string }) => h.role && h.text)
-        .map((h: { role: string; text: string }) => ({
-          role: h.role === "model" ? "assistant" : "user",
-          content: h.text,
-        })),
-      { role: "user", content: message },
-    ];
+    const apiKey = Deno.env.get("GEMINI_API_KEY") ?? "";
 
-    const apiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
+    const ai = new GoogleGenAI({ apiKey });
 
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages,
-      }),
+    const systemInstruction =
+      "You are Tringo AI, a helpful and friendly assistant.";
+
+    const contents = history
+      .filter((h: { role?: string; text?: string }) => h.role && h.text)
+      .map((h: { role: string; text: string }) => ({
+        role: h.role === "model" ? "model" : "user",
+        parts: [{ text: h.text }],
+      }));
+
+    contents.push({ role: "user", parts: [{ text: message }] });
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents,
+      config: { systemInstruction },
     });
 
-    if (!openaiRes.ok) {
-      return new Response(
-        JSON.stringify({ reply: `Tringo AI encountered an error: ${openaiRes.status}` }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    const openaiData = await openaiRes.json();
-    const reply =
-      openaiData?.choices?.[0]?.message?.content ?? "No response received.";
+    const reply = response.text ?? "No response received.";
 
     return new Response(
       JSON.stringify({ reply }),
